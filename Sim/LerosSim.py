@@ -1,7 +1,11 @@
+import sys
+import os
+
+
 IM_SIZE = 1024
 DM_SIZE = 1024
 
-IM, DM = [], []
+IM, DM = [0 for i in range(IM_SIZE)], [0 for i in range(DM_SIZE)]
 progSize = 0
 
 acc = 0, pc = 0, ar = 0
@@ -21,7 +25,8 @@ def simulate():
 		next_pc = pc + 1
 
 		if (pc > progSize):
-			return
+			print("Executed = " + )
+			return 0
 		# the immediate value from the instruction
 		val = 0 
 
@@ -154,4 +159,74 @@ def simulate():
 					next_pc = pc + (instr & 0x00ff)
 
 			else:
-				raise ValueError("Invalid Instruction")
+				raise ValueError("Invalid Instruction at address " + str(pc) + \
+					" : " + str(instr))
+
+def instr_load(filename):
+
+	global progSize
+	src_file = open(filename,"rb")
+	i = 1
+	for line in src_file:
+
+		# Comments and empty lines
+		if len(line) == 0:
+			continue
+		if line[0] == '#':
+			continue
+
+
+		instr_bin = line.split()[0]
+		
+		if len(instr_bin) != 16:
+			return 1
+
+		try:
+			instr_int = int(instr_bin, 2)
+			IM[i] = instr_int
+			i = i + 1
+
+		except ValueError:
+			return 1
+
+	src_file.close()
+
+	progSize = i
+	return 0
+
+
+def main():
+
+	# Check for arguments
+	# to be switched to python parser
+	narg = len(sys.argv)
+	global progSize
+	usage = "Usage: python lerosSim [-s srcDir] [-qio] filename"
+	if  (narg < 2):
+		print(usage)
+		exit(1)
+
+
+	filename = sys.argv[narg - 1]
+
+	# check for file exist
+	if os.path.exists(filename) == False:
+		raise FileNotFoundError('Source file does not exist')
+		exit(1)
+
+	load_stat = instr_load(filename)
+	if load_stat == 1:
+		raise ValueError('File not in proper format')
+		exit(1)
+
+	else:
+		print("Instruction Memory has " + str(progSize) + " words\n")
+		sim_stat = simluate()
+
+	
+
+
+
+
+if __name__ == '__main__':
+	main()
