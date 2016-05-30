@@ -12,9 +12,21 @@ acc = 0, pc = 0, ar = 0
 
 # The delay values of the Acc, for the branch and jump instructions
 acc_dly, acc_dly1 = 0, 0
+executedInstr = 0
 
+
+# The simulate function simulates the behaviour of the
+# CPU by interpreting from the list of instructions (the IM)
+# and loading and storing from the data memory using a variable for 
+# the accumulator. Note that the processor is only suppposed to work 
+# on 16-bit binary registers. However, the length of integers in python
+# is often dynamic and as needed; this is addressed by ensuring that
+# the loads and stores only store and load the last 16 bits by 
+# using a bitwise and with the number 0xffff. In the input and output, then,
+# the stored results can be interpreted as required.
 def simulate():
 
+	global progSize, acc, pc, ar, acc_dly, acc_dly1, executedInstr
 	while True:
 
 		acc_dly = acc_dly1
@@ -25,7 +37,7 @@ def simulate():
 		next_pc = pc + 1
 
 		if (pc > progSize):
-			print("Executed = " + )
+			print("Executed = " + str(executedInstr))
 			return 0
 		# the immediate value from the instruction
 		val = 0 
@@ -44,6 +56,8 @@ def simulate():
 			val = DM[val & 0xff]
 
 
+		# get the opcode and 
+		# EXECUTE the instruction
 		oper = (instr & 0xfe00) >> 8
 
 		if oper == 0x00:
@@ -67,7 +81,7 @@ def simulate():
 		elif oper == 0x20:
 			# LOAD
 			# either immediate or direct
-			acc = val
+			acc = (val & 0xffff)
 
 		elif oper == 0x22:
 			# AND
@@ -90,7 +104,7 @@ def simulate():
 		elif oper == 0x30:
 			# STORE
 			# only as direct
-			DM[instr & 0x00ff] = accu
+			DM[instr & 0x00ff] = (acc & 0xffff)
 
 		elif oper == 0x38:
 			# OUT
@@ -110,11 +124,11 @@ def simulate():
 			pass
 
 		elif oper == 0x60:
-			acc = dm[ar + (instr & 0xff)]
+			acc = (DM[ar + (instr & 0xff)] & 0xffff)
 
 		elif oper == 0x70:
 			# STORE INDIRECT 
-			dm[ar + (instr & 0xff)] = acc
+			DM[ar + (instr & 0xff)] = (acc & 0xffff)
 
 		# case 7: // I/O (ld/st indirect)
 		# break;
@@ -161,11 +175,22 @@ def simulate():
 			else:
 				raise ValueError("Invalid Instruction at address " + str(pc) + \
 					" : " + str(instr))
+				return 1
+
+		executedInstr += 1
+		acc = acc & 0xff 
+
+		ar = DM[instr & 0xff]
+
+		pc = next_pc
+
+
 
 def instr_load(filename):
 
 	global progSize
 	src_file = open(filename,"rb")
+	if not src_file
 	i = 1
 	for line in src_file:
 
@@ -194,6 +219,29 @@ def instr_load(filename):
 	progSize = i
 	return 0
 
+def mem_dump(succ):
+
+	global progSize, pc, acc
+
+	f = open("mem_dmp", "wb")
+	if succ ==1 True:
+		print("Simulation Successful\n", file = f)
+		print("Program Size = " + progSize + "\n\n", file = f)
+		print("Executed instructions = " + executedInstr + "\n\n", file = f)
+		
+		print("A " + bin(acc)[2:].zfill(16) + "   " + str(acc) + "\n", file = f)
+		print("PC " + bin(pc)[2:].zfill(16) + "   " + str(pc) + "\n\n", file = f)
+
+		print("Data Memory\n", file = f)
+		for i in range(257):
+			print(str(i) + " " + bin(DM[i])[2:].zfill(16) + "   " + str(DM[i]) + "\n", file = f)
+
+		print("\n\n", file = f)
+
+		print("Instruction Memory\n", file = f)
+		for i in range(progSize):
+			print(str(i + 1) + " " + bin(IM[i + 1])[2:].zfill(16) + "   " + str(IM[i + 1]) + "\n", file = f)
+
 
 def main():
 
@@ -201,7 +249,7 @@ def main():
 	# to be switched to python parser
 	narg = len(sys.argv)
 	global progSize
-	usage = "Usage: python lerosSim [-s srcDir] [-qio] filename"
+	usage = "Usage: python lerosSim [-qio] filename"
 	if  (narg < 2):
 		print(usage)
 		exit(1)
@@ -222,6 +270,8 @@ def main():
 	else:
 		print("Instruction Memory has " + str(progSize) + " words\n")
 		sim_stat = simluate()
+		if sim_stat == 0:
+			mem_dump(True)
 
 	
 
