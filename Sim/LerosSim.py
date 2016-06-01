@@ -1,6 +1,6 @@
 import sys
 import os
-
+from LerosIO import LerosIO
 
 IM_SIZE = 1024
 DM_SIZE = 1024
@@ -13,6 +13,8 @@ acc = 0, pc = 0, ar = 0
 # The delay values of the Acc, for the branch and jump instructions
 acc_dly, acc_dly1 = 0, 0
 executedInstr = 0
+
+io = LerosIO()
 
 
 # The simulate function simulates the behaviour of the
@@ -108,11 +110,11 @@ def simulate():
 
 		elif oper == 0x38:
 			# OUT
-			pass
+			io.write(instr & 0xff, acc)
 
 		elif oper == 0x3c:
 			# IN 
-			pass
+			acc = (io.read(instr & 0xff) & 0xffff)
 
 		elif oper == 0x40:
 			
