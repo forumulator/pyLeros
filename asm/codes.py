@@ -8,9 +8,11 @@ opttab['ADDI'] = 0x09
 opttab['SUB'] = 0x0c
 opttab['SUBI'] = 0x08
 
+# Shift Right
 opttab['SHR'] = 0x10
-opttab['LOAD'] = 0x20
-opttab['LDI'] = 0x21
+
+# Load immediate
+opttab['LOAD'] = 0x21
 
 opttab['AND'] = 0x22
 opttab['ANDI'] = 0x23
