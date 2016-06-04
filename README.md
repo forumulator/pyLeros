@@ -28,7 +28,7 @@ Dependencies
    - [rhea](https://github.com/cfelton/rhea) for various cores
    
 
-Miscellanous
+Miscellaneous
 ----------------
 
 This code/package is licensed under the MIT license, which allows for 
