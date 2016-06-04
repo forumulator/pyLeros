@@ -25,6 +25,7 @@ Dependencies
 ------------
    - [myhdl](http://www.myhdl.org) version 1.0
    - [pytest](http://www.pytest.org) for the test suite
+   - [rhea](https://github.com/cfelton/rhea) for various cores
    
 
 Miscellanous
