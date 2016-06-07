@@ -22,8 +22,7 @@ opttab['ORI'] = 0x25
 opttab['XOR'] = 0x26
 opttab['XORI'] = 0x27
 
-opttab['LOADH'] = 0x28
-opttab['LDHI'] = 0x29
+opttab['LOADH'] = 0x29
 
 opttab['STORE'] = 0x30
 
