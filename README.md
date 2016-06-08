@@ -17,8 +17,8 @@ based instruction set simulator for the processor and an assembler.
 VHDL Version
 --------
 The pyLeros processor is based on `Leros`, created by Martin Shoeberl in 2010.
-**Github:**[https://github.com/schoeberl/leros](https://github.com/schoeberl/leros)
-**Original Documentation:** [https://github.com/schoeberl/leros/blob/master/doc/leros.pdf](https://github.com/schoeberl/leros/blob/master/doc/leros.pdf)
+	- **Github:**[https://github.com/schoeberl/leros](https://github.com/schoeberl/leros)
+	- **Original Documentation:** [https://github.com/schoeberl/leros/blob/master/doc/leros.pdf](https://github.com/schoeberl/leros/blob/master/doc/leros.pdf)
  
  
 Dependencies
