@@ -92,7 +92,9 @@ def test_decode(args=None):
 	run_testbench(_bench_dec)
 
 
+if __name__ == "__main__":
 
+	test_rom()
 
 
 
