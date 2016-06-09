@@ -1,9 +1,9 @@
-from pyleros.codes import codes, dlist
+from pyleros.codes import codes, dlist, alu_op_type
 
 from pyleros import decoder
 from myhdl import *
 
-from rhea import Clock, Reset
+from rhea.system import Clock, Reset
 
 from rhea.utils.test import run_testbench
 
@@ -13,16 +13,16 @@ def test_decode(args=None):
 
 	"""
 	clock = Clock(0, frequency=50e6)
-    reset = Reset(0, active=0, async=True)
+	reset = Reset(0, active=0, async=True)
 
-    # the high 8 bits of the instruction
-    instr_hi = Signal(intbv(0)[8:])
+	# the high 8 bits of the instruction
+	instr_hi = Signal(intbv(0)[8:])
 
-    d = {}
-    for i in dlist:
-    	d[i] = Signal(bool(0))
+	d = {}
+	for i in dlist:
+		d[i] = Signal(bool(0))
 
-    d['cs'] = Signal(alu_op_type.LD)
+	d['cs'] = Signal(alu_op_type.LD)
 
 
 	def _bench_dec():
@@ -56,7 +56,7 @@ def test_decode(args=None):
 
 					else:
 						if cs in codes[instr][1]:
-							assert d[cs] = codes[instr][3]
+							assert d[cs] == codes[instr][3]
 
 				yield delay(33)
 
@@ -77,7 +77,7 @@ def test_decode(args=None):
 
 						else:
 							if cs in codes[instr][1]:
-								assert d[cs] = codes[instr][3]
+								assert d[cs] == codes[instr][3]
 
 						assert d['sel_imm'] == True
 

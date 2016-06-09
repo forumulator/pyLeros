@@ -1,4 +1,6 @@
-from types import alu_op_type
+from myhdl import enum
+
+alu_op_type = enum('LD', 'AND', 'OR', 'XOR')
 
 # dictionary of all the codes
 codes = {}
@@ -11,7 +13,7 @@ codes['SHR'] = [0x10, ['al_ena', 'ah_ena', 'shr'], False]
 codes['LOAD'] = [0x20, ['al_ena', 'ah_ena', 'op'], True, alu_op_type.LD]
 codes['AND'] = [0x22, ['al_ena', 'ah_ena', 'op'], True, alu_op_type.AND]
 codes['OR'] = [0x24, ['al_ena', 'ah_ena', 'op'], True, alu_op_type.OR]
-codes['LOAD'] = [0x26, ['al_ena', 'ah_ena', 'op'], True, alu_op_type.LD]
+codes['XOR'] = [0x26, ['al_ena', 'ah_ena', 'op'], True, alu_op_type.XOR]
 
 # Load high
 codes['LOADH'] = [0x28, ['al_ena', 'ah_ena', 'op'], False, alu_op_type.LD]
