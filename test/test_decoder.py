@@ -1,4 +1,5 @@
-from pyleros.codes import codes, dlist, alu_op_type
+from pyleros.codes import codes, dlist
+from pyleros.types import alu_op_type, t_decSignal
 
 from pyleros import decoder
 from myhdl import *
@@ -20,17 +21,18 @@ def test_decode(args=None):
 
 	d = {}
 	for i in dlist:
-		d[i] = Signal(bool(0))
+		d[str(i)] = Signal(bool(0))
 
-	d['cs'] = Signal(alu_op_type.LD)
+	d['op'] = Signal(alu_op_type.LD)
+
+	out_list = [d[str(sig)] for sig in dlist]
 
 
 	def _bench_dec():
 
+
 		# instantiate the decoder
-		decode_inst = decoder.pyleros_decoder(instr_hi, d['op'], d['al_ena'], d['ah_ena'], d['log_add'], d['add_sub'], 
-					d['shr'], d['sel_imm'], d['store'], d['outp'], d['inp'], d['br_op'], d['jal'],
-					d['loadh'], d['indls'])
+		decode_inst = decoder.pyleros_decoder(instr_hi, out_list)
 
 		@instance
 		def tbstim():
@@ -47,16 +49,16 @@ def test_decode(args=None):
 
 				# check for correct decode
 				for cs in dlist:
-					if not cs == 'op':
+					if not cs == t_decSignal.op:
 						if cs in codes[instr][1]:
-							assert d[cs] == True
+							assert d[str(cs)] == True
 
 						else:
-							assert d[cs] == False
+							assert d[str(cs)] == False
 
 					else:
 						if cs in codes[instr][1]:
-							assert d[cs] == codes[instr][3]
+							assert d[str(cs)] == codes[instr][3]
 
 				yield delay(33)
 
@@ -68,16 +70,16 @@ def test_decode(args=None):
 
 					# check for correct decode
 					for cs in dlist:
-						if not cs == 'op':
+						if not cs == t_decSignal.op:
 							if cs in codes[instr][1]:
-								assert d[cs] == True
+								assert d[str(cs)] == True
 
 							else:
-								assert d[cs] == False
+								assert d[str(cs)] == False
 
 						else:
 							if cs in codes[instr][1]:
-								assert d[cs] == codes[instr][3]
+								assert d[str(cs)] == codes[instr][3]
 
 						assert d['sel_imm'] == True
 

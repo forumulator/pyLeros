@@ -1,11 +1,9 @@
 from myhdl import instances, block, Signal, enum
-from pyleros.codes import alu_op_type
+from pyleros.types import alu_op_type, t_decSignal
 
 
 @block
-def pyleros_decoder(instr_hi, op, al_ena, ah_ena, log_add, add_sub, 
-					shr, sel_imm, store, outp, inp, br_op, jal,
-					loadh, indls):
+def pyleros_decoder(instr_hi, out_sig):
 	"""The decoder module for pyleros, decodes the high bits
 	of the instruction and generates the control signals. The modules is
 	purely combinatorial. 
@@ -39,28 +37,28 @@ def pyleros_decoder(instr_hi, op, al_ena, ah_ena, log_add, add_sub,
 	def decoder():
 
 		# Set the defaults of all signals
-		op.next = alu_op_type.LD
-		al_ena.next = False
-		ah_ena.next = False
-		log_add.next = False
-		add_sub.next = False
-		shr.next = False
-		sel_imm.next = False
-		store.next = False
-		outp.next = False
-		inp.next = False
-		br_op.next = False
-		jal.next = False
-		loadh.next = False
-		indls.next = False
+		out_sig[int(t_decSignal.op)].next = alu_op_type.LD
+		out_sig[int(t_decSignal.al_ena)].next = False
+		out_sig[int(t_decSignal.ah_ena)].next = False
+		out_sig[int(t_decSignal.log_add)].next = False
+		out_sig[int(t_decSignal.add_sub)].next = False
+		out_sig[int(t_decSignal.shr)].next = False
+		out_sig[int(t_decSignal.sel_imm)].next = False
+		out_sig[int(t_decSignal.store)].next = False
+		out_sig[int(t_decSignal.outp)].next = False
+		out_sig[int(t_decSignal.inp)].next = False
+		out_sig[int(t_decSignal.br_op)].next = False
+		out_sig[int(t_decSignal.jal)].next = False
+		out_sig[int(t_decSignal.loadh)].next = False
+		out_sig[int(t_decSignal.indls)].next = False
 
 
 		# Decode
 
-		add_sub.next = instr_hi[2]
+		out_sig[int(t_decSignal.add_sub)].next = instr_hi[2]
 
 		# the imm. bit, 0
-		sel_imm.next = instr_hi[0]
+		out_sig[int(t_decSignal.sel_imm)].next = instr_hi[0]
 
 		ins_ckh = instr_hi & 0xf8
 
@@ -70,15 +68,15 @@ def pyleros_decoder(instr_hi, op, al_ena, ah_ena, log_add, add_sub,
 
 		elif ins_ckh == 0x08:
 			# ADD/SUB
-			al_ena.next = True
-			ah_ena.next = True
-			log_add.next = True
+			out_sig[int(t_decSignal.al_ena)].next = True
+			out_sig[int(t_decSignal.ah_ena)].next = True
+			out_sig[int(t_decSignal.log_add)].next = True
 
 		elif ins_ckh == 0x10:			
 			# SHR
-			al_ena.next = True
-			ah_ena.next = True
-			shr.next = True
+			out_sig[int(t_decSignal.al_ena)].next = True
+			out_sig[int(t_decSignal.ah_ena)].next = True
+			out_sig[int(t_decSignal.shr)].next = True
 
 		elif ins_ckh == 0x18:
 			# reserved
@@ -86,37 +84,37 @@ def pyleros_decoder(instr_hi, op, al_ena, ah_ena, log_add, add_sub,
 
 		elif ins_ckh == 0x20:
 			# ALU_OP : ld, or, and, xor
-			al_ena.next = True
-			ah_ena.next = True
+			out_sig[int(t_decSignal.al_ena)].next = True
+			out_sig[int(t_decSignal.ah_ena)].next = True
 
 		elif ins_ckh == 0x28:
 			# LOADH
-			loadh.next = True
-			ah_ena.next = True
+			out_sig[int(t_decSignal.loadh)].next = True
+			out_sig[int(t_decSignal.ah_ena)].next = True
 
 		elif ins_ckh == 0x30:
 			# STORE
-			store.next = True
+			out_sig[int(t_decSignal.store)].next = True
 
 		elif ins_ckh == 0x38:
 			# I/O
 			if instr_hi[2] == False:
 				# OUT
-				outp.next = True
+				out_sig[int(t_decSignal.outp)].next = True
 			else:
 				# IN
-				inp.next = True
-				al_ena.next = True
-				ah_ena.next = True
+				out_sig[int(t_decSignal.inp)].next = True
+				out_sig[int(t_decSignal.al_ena)].next = True
+				out_sig[int(t_decSignal.ah_ena)].next = True
 
 		elif ins_ckh == 0x40:
 			# JAL
-			jal.next = True
-			store.next = True
+			out_sig[int(t_decSignal.jal)].next = True
+			out_sig[int(t_decSignal.store)].next = True
 
 		elif ins_ckh == 0x48:
 			# BRANCH
-			br_op.next = True
+			out_sig[int(t_decSignal.br_op)].next = True
 
 		elif ins_ckh == 0x50:
 			# LOADADDR, to be implemented
@@ -124,14 +122,14 @@ def pyleros_decoder(instr_hi, op, al_ena, ah_ena, log_add, add_sub,
 
 		elif ins_ckh == 0x60:
 			# LOAD INDIRECT
-			al_ena.next = True
-			ah_ena.next = True
-			indls.next = True
+			out_sig[int(t_decSignal.al_ena)].next = True
+			out_sig[int(t_decSignal.ah_ena)].next = True
+			out_sig[int(t_decSignal.indls)].next = True
 
 		elif ins_ckh == 0x61:
 			# STORE INDIRECT
-			indls.next = True
-			store.next = True
+			out_sig[int(t_decSignal.indls)].next = True
+			out_sig[int(t_decSignal.store)].next = True
 
 
 
@@ -139,19 +137,19 @@ def pyleros_decoder(instr_hi, op, al_ena, ah_ena, log_add, add_sub,
 		# alu_op_type
 		if instr_hi[2:1] == 0b00:
 			# LOAD
-			op.next = alu_op_type.LD
+			out_sig[int(t_decSignal.op)].next = alu_op_type.LD
 
 		elif instr_hi[2:1] == 0b01:
 			# AND
-			op.next = alu_op_type.AND
+			out_sig[int(t_decSignal.op)].next = alu_op_type.AND
 
 		elif instr_hi[2:1] == 0b10:
 			# OR
-			op.next = alu_op_type.OR
+			out_sig[int(t_decSignal.op)].next = alu_op_type.OR
 
 		elif instr_hi[2:1] == 0b11:
 			# XOR
-			op.next = alu_op_type.XOR
+			out_sig[int(t_decSignal.op)].next = alu_op_type.XOR
 
 	return instances()
 
