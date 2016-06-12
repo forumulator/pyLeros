@@ -1,4 +1,4 @@
-from pyleros import leros_rom as rom
+from pyleros import rom as rom
 
 from myhdl import *
 

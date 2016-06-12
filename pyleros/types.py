@@ -5,3 +5,6 @@ t_decSignal = enum('op', 'al_ena', 'ah_ena', 'log_add', 'add_sub', \
 					'loadh', 'indls')
 
 alu_op_type = enum('LD', 'AND', 'OR', 'XOR')
+
+IM_BITS = 9
+DM_BITS = 8
