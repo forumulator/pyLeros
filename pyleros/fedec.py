@@ -9,7 +9,7 @@ from pyleros import decoder, rom
 
 @block
 def pyleros_fedec(clk, reset, acc, dm_data,
-				pipe_dec, pipe_instr, pipe_rd_addr, pipe_pc):
+				pipe_dec, pipe_imme, pipe_rd_addr, pipe_pc):
 	"""The fedec module for pyleros, that is, the fetch
 	and decode pipeline stage. The modules is purely 
 	combinatorial, except for the updating the pipeline 
@@ -30,7 +30,8 @@ def pyleros_fedec(clk, reset, acc, dm_data,
         dm_data: IN The data read from the DM, which is needed for
         	an direct add or and indirect load/ store(which follows)
         pipe_dec: OUT List of the decode signals, pass on to the execute stage
-        pipe_instr: OUT Instruction, pass on to execute stage
+        pipe_imme: OUT Immediate value, as taken from the lower bits 
+        		of the instruction, pass on to execute stage
         pipe_rd_addr: OUT DM read addr, pipeline register
         pipe_pc: OUT the value of PC, pipeline register
 
@@ -79,7 +80,85 @@ def pyleros_fedec(clk, reset, acc, dm_data,
 		else:
 			pipe_rd_addr.next = instr[DM_BITS:]
 
+	@always_comb
+	def branch_sel():
+
+		if acc == 0:
+			acc_z = True
+
+		else:
+			acc_z = False
+
+		branch_en = 0
+
+		if decode[int(t_decSignal.br_op)] == True:
+			br_type = instr[11:8]
+
+			if br_type == 0b000:
+				# BRANCH
+				branch_en = 1
+
+			elif br_type == 0b001:
+				# BRZ
+				branch_en = True if acc_z == True else False
+
+			elif br_type == 0b010:
+				# BRNZ
+				branch_en = True if acc_z == False else False
+
+			elif br_type = 0b011:
+				# BRP
+				branch_en = True if acc[15] == False else False
+
+			elif br_type = 0b100:
+				# BRN
+				branch_en = True if acc[15] == True else False
+
+	# For selection of next PC address
+	@always_comb
+	def pc_mux():
+
+		if branch_en == True:
+			# Sign extend the low 8 bits
+			# of instruction
+			pc_op[:] = sign_entend(instr, IM_BITS)
+
+		else:
+			pc_op[:] = 1
+
+		pc_add[:] = pc + pc_op
+
+		# Add 1 or branch offset OR set the add
+		# to the jump addr
+		if decode[int(t_decSignal.jal)] == True: 
+			pc_next.next = accu[IM_BITS:]
+
+		else:
+			pc_next.next = pc_op
 	
+	# Set the values on positive clock edge,
+	# the only seq. part of the module
+	@always_seq(clk.posedge, reset=reset)
+	def fedec_set():
+
+		pc.next = pc_next
+
+		# Set the control signals for the
+		# pipeline register
+		for sig in dlist:
+			pipe_dec[int(sig)].next = decode[int(sig)]
+
+		# if decode[int(t_decSignal.add_sub)] == True:
+		# Set the immediate value
+		if decode[int(t_decSignal.loadh)] == True:
+			pipe_imme.next = instr[8:] << 8
+		
+		else:
+			pipe_imme.next = sign_extend(instr[8:], 16)
+		
+		# else:
+		# 	immr(7 downto 0) <= imout.data(7 downto 0);
+		# 	immr(15 downto 0) <= (others => '0');		
 
 
 
