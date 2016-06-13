@@ -1,7 +1,8 @@
 import myhdl
-from myhdl import instances, block, Signal, enum
+from myhdl import instances, block, Signal, intbv, enum, \
+					always_comb, always_seq
 
-from pyleros.codes import alu_op_type, t_decSignal, IM_BITS, DM_BITS
+from pyleros.types import alu_op_type, t_decSignal, IM_BITS, DM_BITS
 from pyleros.codes import dlist
 
 from pyleros import decoder, rom
@@ -96,7 +97,7 @@ def pyleros_fedec(clk, reset, acc, dm_data,
 
 			if br_type == 0b000:
 				# BRANCH
-				branch_en = 1
+				branch_en == 1
 
 			elif br_type == 0b001:
 				# BRZ
@@ -106,11 +107,11 @@ def pyleros_fedec(clk, reset, acc, dm_data,
 				# BRNZ
 				branch_en = True if acc_z == False else False
 
-			elif br_type = 0b011:
+			elif br_type == 0b011:
 				# BRP
 				branch_en = True if acc[15] == False else False
 
-			elif br_type = 0b100:
+			elif br_type == 0b100:
 				# BRN
 				branch_en = True if acc[15] == True else False
 
@@ -165,18 +166,20 @@ def pyleros_fedec(clk, reset, acc, dm_data,
 	return instances()
 
 
-	# Sign extend an intbv or Signal to specified number of bits
-	def sign_extend(num, bits = 0):
 
-		if (type(num) is intbv) or (type(num) is myhdl._Signal._Signal):
-			len_n = len(num) - 1 
-			num = (int(num[len_n]) << (len_n) ) * -1 + int(num[len_n:])
-			if bits != 0:
-				if -2**(bits-1) < num < (2**(bits-1) - 1) :
-					num = num & ((1 << bits) - 1)
-				else:
-					raise ValueError("Value " + str(num) + " too large to sign extend")
-			return num
+# Sign extend an intbv or Signal to specified number of bits
+def sign_extend(num, bits = 0):
 
-		else:
-			raise TypeError("Input needs to be " + str(type(Signal())) + ' or ' + str(type(intbv(0))))
+	if (type(num) is intbv) or (type(num) is myhdl._Signal._Signal):
+		len_n = len(num)
+		sign_bit = int(num[len_n - 1])
+		num = ((sign_bit << len_n) * -1) + int(num[len_n:])
+		if bits != 0:
+			if -2**(bits-1) <= num <= (2**(bits-1) - 1) :
+				num = num & ((1 << bits) - 1)
+			else:
+				raise ValueError("Value " + str(num) + " too large to sign extend")
+		return num
+
+	else:
+		raise TypeError("Input needs to be " + str(type(Signal())) + ' or ' + str(type(intbv(0))))
