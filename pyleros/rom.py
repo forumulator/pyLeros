@@ -1,4 +1,5 @@
 from myhdl import block, Signal, intbv, instances, always_seq
+from pyleros.types import IM_BITS
 import sys
 
 
@@ -15,10 +16,10 @@ def pyleros_im(clk, reset, rd_addr, rd_data, filename = None):
         rd_data: OUT The data at IM address
 
     Parameters:
-	    None 
+	    filename: Name of the file or a list containing the instructions
 
 	"""
-	IM_SIZE = 1024
+	IM_SIZE = 2**IM_BITS
 	IM = [(intbv(0)[16:]) for _ in range(IM_SIZE)]
 
 	# Fill up the memory registers
@@ -30,7 +31,7 @@ def pyleros_im(clk, reset, rd_addr, rd_data, filename = None):
 	@always_seq(clk.posedge, reset=reset)
 	def IM_read():
 
-			rd_data.next = IM[int(rd_addr)]
+			rd_data.next = IM_array[int(rd_addr)]
 
 	return instances()
 
