@@ -1,4 +1,5 @@
 from pyleros import rom as rom
+from pyleros.types import IM_BITS
 
 from myhdl import *
 
@@ -20,9 +21,10 @@ def test_rom(args=None):
 	clock = Clock(0, frequency=50e6)
 	reset = Reset(0, active=0, async=True)
 
-	rd_addr, rd_data = [Signal(intbv(0)[16:])] * 2
+	rd_addr = [Signal(intbv(0)[IM_BITS:])] 
+	rd_data = [Signal(intbv(0)[16:])] 
 
-	IM_SIZE = 1024
+	IM_SIZE = 2**IM_BITS
 	instr_array = [0 for _ in range(IM_SIZE)]
 
 	def _bench_dec():
@@ -45,13 +47,11 @@ def test_rom(args=None):
 
 				rd_addr.next = addr
 
-				for i in range(2):
+				for i in range(1):
 					yield clock.posedge
 
 				assert rd_data == instr_array[addr]			
 
-				for i in range(2):
-					yield clock.posedge	
 
 			for ii in range(5):
 				yield clock.posedge
