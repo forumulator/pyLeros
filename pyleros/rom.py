@@ -22,16 +22,25 @@ def pyleros_im(clk, reset, rd_addr, rd_data, filename = None):
 	IM_SIZE = 2**IM_BITS
 	IM = [(intbv(0)[16:]) for _ in range(IM_SIZE)]
 
+	# print("\n\n")
+	# print("defined mem")
+	# for i in range(10):
+	# 	print(IM[i])
+
 	# Fill up the memory registers
 	define_rom(IM, IM_SIZE, filename)
 
 	# convert list into tupple for automatic conversion
 	IM_array = tuple(IM)
 
+	# print("\nFinal mem\n")
+	# for i in range(10):
+	# 	print(int(IM_array[i]))
+
 	@always_seq(clk.posedge, reset=reset)
 	def IM_read():
 
-			rd_data.next = IM_array[int(rd_addr)]
+		rd_data.next = IM_array[int(rd_addr)]
 
 	return instances()
 
@@ -42,40 +51,43 @@ def define_rom(IM, IM_SIZE=1024, filename = None):
 
 	if filename:
 		if type(filename) is list:
-			addr = 0
-			for instr in filename:
-				IM[addr] = intbv(instr)[16:]
+			# print("\nOrg mem\n")
+			for addr in range(len(filename)):
+				# if addr < 10:
+				# 	print(filename[addr])
+				IM[addr] = intbv(int(filename[addr]))[16:]
 				addr += 1
 
 			for i in range(addr, IM_SIZE):
 				IM[i] = intbv(0x0000)[16:]
 			return 0
 
-		with open(filename, "r") as f:
-			addr = 0
+		else:
+			with open(filename, "r") as f:
+				addr = 0
 
-			for line in f:
-				line = line.split('//')[0]
-				full = ''
-				for part in line.split():
-					full += part
+				for line in f:
+					line = line.split('//')[0]
+					full = ''
+					for part in line.split():
+						full += part
 
-				line = full
-				if line:
-					if not (line.isdigit() and (len(line) == 16)):
-						raise Exception
-
-					else:
-						try:
-							instr = intbv(int(line, 2))[16:]
-							IM[addr] = instr
-							addr += 1
-						except:
+					line = full
+					if line:
+						if not (line.isdigit() and (len(line) == 16)):
 							raise Exception
 
-			for i in range(addr, IM_SIZE):
+						else:
+							try:
+								instr = intbv(int(line, 2))[16:]
+								IM[addr] = instr
+								addr += 1
+							except:
+								raise Exception
 
-				IM[i] = intbv(0x0000)[16:]
+				for i in range(addr, IM_SIZE):
+
+					IM[i] = intbv(0x0000)[16:]
 
 
 	else:

@@ -24,7 +24,7 @@ def pyleros_dm(clk, reset, rd_addr, wr_addr, wr_data, wr_en, rd_data):
 
 	"""
 	DM_SIZE = 2**DM_BITS
-	DM = [(intbv(0)[16:]) for _ in range(DM_SIZE)]
+	DM = [(intbv(65)[16:]) for _ in range(DM_SIZE)]
 
 	# convert list into tupple for automatic conversion
 	# DM_array = tuple(DM)
@@ -32,15 +32,15 @@ def pyleros_dm(clk, reset, rd_addr, wr_addr, wr_data, wr_en, rd_data):
 	@always_seq(clk.posedge, reset=reset)
 	def DM_rw():
 
-			if wr_en == True:
-				# Write enabled
-				if wr_addr >= DM_SIZE:
-					raise ValueError("Write addr " + hex(wr_addr) + "out of bounds")
-				else:	
-					DM[int(wr_addr)] = intbv(wr_data)[16:]
+		if wr_en == True:
+			# Write enabled
+			if wr_addr >= DM_SIZE:
+				raise ValueError("Write addr " + hex(wr_addr) + "out of bounds")
+			else:	
+				DM[int(wr_addr)] = intbv(wr_data.val)[16:]
 
 
-			rd_data.next = DM[int(rd_addr)]
+		rd_data.next = DM[int(rd_addr)]
 
 	return instances()
 
