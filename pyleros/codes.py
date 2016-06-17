@@ -15,7 +15,7 @@ codes['OR'] = [0x24, [t_decSignal.al_ena, t_decSignal.ah_ena, t_decSignal.op], T
 codes['XOR'] = [0x26, [t_decSignal.al_ena, t_decSignal.ah_ena, t_decSignal.op], True, alu_op_type.XOR]
 
 # Load high
-codes['LOADH'] = [0x28, [t_decSignal.al_ena, t_decSignal.ah_ena, t_decSignal.op], False, alu_op_type.LD]
+codes['LOADH'] = [0x28, [t_decSignal.loadh, t_decSignal.ah_ena, t_decSignal.op], False, alu_op_type.LD]
 codes['STORE'] = [0x30, [t_decSignal.store], False]
 
 # I/O
