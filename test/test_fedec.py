@@ -1,4 +1,7 @@
-from pyleros.fedec import sign_extend
+from pyleros.fedec import sign_extend, pyleros_fedec
+from pyleros.codes import dlist
+from pyleros.types import alu_op_type, t_decSignal, IM_BITS, DM_BITS
+
 from myhdl import *
 
 from rhea.system import Clock, Reset
@@ -12,56 +15,75 @@ from datetime import datetime
 random.seed(int(datetime.now().time().second))
 
 
-# def test_fedec(args=None):
-# 	"""Test the fetch/decode module in pyleros
+def test_fedec(args=None):
+	"""Test the fetch/decode module in pyleros
 
-# 	"""
-# 	clock = Clock(0, frequency=50e6)
-# 	reset = Reset(0, active=0, async=True)
+	"""
+	clock = Signal(bool(0))
+	reset = ResetSignal(1, active=1, async=True)
 
-# 	rd_addr, rd_data = [Signal(intbv(0)[16:])] * 2
+	acc, dm_data = [Signal(intbv(0)[16:])] * 2
 
-# 	IM_SIZE = 1024
-# 	instr_array = [0 for _ in range(IM_SIZE)]
+	pipe_dec = [False for sig in dlist]
+	pipe_dec[int(t_decSignal.op)] = alu_op_type.LD
 
-# 	def _bench_dec():
+	pipe_imme = Signal(intbv(0)[16:])
+	pipe_rd_addr = Signal(intbv(0)[DM_BITS:])
 
-# 		# instantiate the rom
-# 		for i in range(IM_SIZE):
-# 			instr_array[i] = randrange(2**15) - 2**14
+	pipe_pc = Signal(intbv(0)[IM_BITS:])
 
-# 		im_inst = rom.pyleros_im(clock, reset, rd_addr, rd_data, filename = instr_array)
+	instr_array = [0 for _ in range(IM_SIZE)]
 
-# 		@instance
-# 		def tbstim():
-
-# 			for i in range(5):
-# 				yield clock.posedge
-
-# 			for tryn in range(IM_SIZE):
-
-# 				addr = randrange(IM_SIZE)
-
-# 				rd_addr.next = addr
-
-# 				for i in range(2):
-# 					yield clock.posedge
-
-# 				assert rd_data == instr_array[addr]			
-
-# 				for i in range(2):
-# 					yield clock.posedge	
-
-# 			for ii in range(5):
-# 				yield clock.posedge
+	@always(delay(10))
+    def tbclk():
+        clock.next = not clock
 
 
-# 			raise StopSimulation
+	def _bench_load():
 
-# 		return tbstim, im_inst
+		# instantiate the rom
+		for i in range(IM_SIZE):
+			# LOADI for the second half of the memory
+			if i > int(IM_SIZE /2):
+				imm = randrange(2**8)
+				# LOADI in the first 8 bits and a random
+				# imm value in the lower bits
+				instr_array = [(0x2100) | (im & 0xff)]
 
-# 	for jj in range(10):
-# 		run_testbench(_bench_dec)
+		inst_fedec = pyleros_fedec(clock, reset, acc, dm_data,
+								pipe_dec, pipe_imme, pipe_rd_addr,
+								pipe_pc, filename=instr_array)
+
+		@instance
+		def tbstim():
+
+			for i in range(5):
+				yield clock.posedge
+
+			for tryn in range(IM_SIZE):
+
+				addr = randrange(IM_SIZE)
+
+				rd_addr.next = addr
+
+				for i in range(2):
+					yield clock.posedge
+
+				assert rd_data == instr_array[addr]			
+
+				for i in range(2):
+					yield clock.posedge	
+
+			for ii in range(5):
+				yield clock.posedge
+
+
+			raise StopSimulation
+
+		return tbstim, im_inst, tbclk
+
+	for jj in range(10):
+		run_testbench(_bench_dec)
 
 
 
@@ -90,10 +112,6 @@ def test_sign_extend(args=None):
 
 		except ValueError:
 			assert exbits < nbits
-
-
-
-
 
 
 if __name__ == "__main__":
