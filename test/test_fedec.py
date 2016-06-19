@@ -2,6 +2,8 @@ from pyleros.fedec import sign_extend, pyleros_fedec
 from pyleros.codes import dlist
 from pyleros.types import alu_op_type, t_decSignal, IM_BITS, DM_BITS
 
+import pytest
+
 from myhdl import *
 
 from rhea.system import Clock, Reset
@@ -14,7 +16,7 @@ from datetime import datetime
 
 random.seed(int(datetime.now().time().second))
 
-
+@pytest.mark.xfail
 def test_fedec(args=None):
 	"""Test the fetch/decode module in pyleros
 
