@@ -28,11 +28,49 @@ Dependencies
    - [rhea](https://github.com/cfelton/rhea) for various cores
    
 
+Getting started
+---------------
+Checkout the above repo using
+
+```
+>> git clone https://github.com/jandecaluwe/myhdl
+
+```
+The dependencies listed above need to be installed. It can be done
+manually, using
+
+```
+  >> pip install git+https://github.com/jandecaluwe/myhdl
+  >> pip install git+https://github.com/cfelton/rhea
+  >> pip install pytest
+```
+
+or just run
+
+```  
+  >> pip install -r requirements.txt
+```
+
+Install the latest myhdl(1.0, from the repository), rhea and pytest. Then, to install in development mode
+
+
+```  
+  >> sudo python setup.py develop
+ 
+```
+
+### Running tests
+
+The tests can be run from the test directory. The need the pytest package to run.
+
+```
+  >> cd test
+  >> py.test
+```
+
 Miscellaneous
 ----------------
-
-This code/package is licensed under the MIT license, which allows for 
-free and full use of the code without limitations. 
+. 
 For any question, I can be reached at forumulator@gmail.com.
 
 The general directory structure of the project is as follows:
@@ -42,7 +80,7 @@ The general directory structure of the project is as follows:
 
    * asm : Python based assembler and linker for the Leros instruction set. 
 
-   * pyLeros : The main pyLeros core, in MyHDL. 
+   * pyleros : The main pyLeros core, in MyHDL. 
 
    * docs : Documentation for the project, in Sphinx 
 
