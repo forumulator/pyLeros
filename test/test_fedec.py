@@ -37,8 +37,8 @@ def test_fedec(args=None):
 	instr_array = [0 for _ in range(IM_SIZE)]
 
 	@always(delay(10))
-    def tbclk():
-        clock.next = not clock
+	def tbclk():
+	    clock.next = not clock
 
 
 	def _bench_load():
