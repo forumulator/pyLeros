@@ -35,6 +35,90 @@ def pyleros_exec(clk, reset, pipe_dec, pipe_imme, pipe_rd_addr, pipe_pc,
 
 	"""
 
+	# Define the Accumulator
+	acc, opd, pre_accu = [Signal(intbv(0)[16:])] * 3
+
+	# Signals to instantiate the DM
+	dm_wr_addr = Signal(intbv(0)[DM_BITS:])
+	dm_wr_data = Signal(intbv(0)[16:])
+	dm_rd_addr = Signal(intbv(0)[DM_BITS:])
+	dm_rd_data = Signal(intbv(0)[16:])
+	dm_wr_en = Signal(bool(0))
+
+	pc_dly = Signal(intbv(0)[IM_BITS:])
+
+	dm_wr_addr_dly = Signal(intbv(0)[DM_BITS:])
+
+	# Instantiate the ALU
+	alu_inst = alu.pyleros_alu(pipe_dec, acc, opd, pre_accu)
+
+	# Instantiate the DM
+	dm_inst = ram.pyleros_dm(clk, reset, dm_rd_addr, dm_wr_addr, dm_wr_data, dm_wr_en, dm_rd_data)
+
+
+	@always_comb
+	def sync_sig():
+
+		if not reset == True:
+			back_acc.next = acc
+			back_dm_data.next = dm_rd_data
+			dm_rd_addr.next = pipe_rd_addr
+			dm_wr_addr.next = dm_wr_addr_dly
+
+
+	@always_comb
+	def opd_mux():
+
+		if not reset:
+			# Mux for selecting the value of operand, that is,
+			# Data Memory read/ Immediate value retrieve
+			if pipe_dec[int(t_decSignal.sel_imm)] == True:
+				# Immediate
+				opd.next = pipe_imme
+
+			else:
+				opd.next = dm_rd_data
+
+
+	@always_comb
+	def mux_jal():
+
+		if not reset:
+			# MUX for selecting the data to be written
+			# in case of jal
+			if pipe_dec[int(t_decSignal.jal)] == True:
+				temp = intbv(0)[16:]
+				temp[IM_BITS:0] = pc_dly
+				temp[16:IM_BITS] = 0
+
+				dm_wr_data.next = temp
+
+			else:
+				dm_wr_data.next = acc
+
+
+	
+	# Set the values on positive clock edge,
+	# the only seq. part of the module
+	@always_seq(clk.posedge, reset=reset)
+	def fedec_set():
+
+			# Write the accumulator based on the 
+			# high and low enable write control signals
+			high, low = 0x00, 0x00
+			if pipe_dec[int(t_decSignal.al_ena)]:
+				low = 0xff
+			if pipe_dec[int(t_decSignal.ah_ena)]:
+				high = 0xff
+
+			mask = (high << 8) | low
+
+			acc.next = pre_accu | mask
+
+			# Set the delay registers
+			dm_wr_addr_dly.next = pipe_rd_addr
+			pc_dly.next = pipe_pc
+
 
 
 
