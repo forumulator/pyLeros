@@ -14,6 +14,7 @@ from datetime import datetime
 
 random.seed(int(datetime.now().time().second))
 
+# Test bench to test ALU working along with the decoder6
 @block
 def main(args=None):
 	"""Test the alu module in pyleros
@@ -98,8 +99,17 @@ def main(args=None):
 				elif instr == 'SHR':
 					assert alu_res == (op1 & 0xffff) >> 1
 
-				# elif instr == 'AND':
-				# 	assert alu_res == (op1 & op2) & 0xffff
+				elif instr == 'AND':
+					assert alu_res == (op1 & op2) & 0xffff
+
+				elif instr == 'OR':
+					assert alu_res == (op1 | op2) & 0xffff
+
+				elif instr == 'XOR':
+					assert alu_res == (op1 ^ op2) & 0xffff
+
+				elif instr == 'LOAD':
+					assert alu_res == op2 & 0xffff
 
 
 		raise StopSimulation

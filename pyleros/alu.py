@@ -42,11 +42,11 @@ def pyleros_alu(dec, acc, opd, pre_acc):
 
 		elif dec[int(t_decSignal.op)] == alu_op_type.AND:
 			# AND
-			res_log = int(acc and opd)
+			res_log = int(acc & opd)
 
 		elif dec[int(t_decSignal.op)] == alu_op_type.OR:
 			# OR
-			res_log = int(acc or opd)
+			res_log = int(acc | opd)
 
 		elif dec[int(t_decSignal.op)] == alu_op_type.XOR:
 			# XOR
