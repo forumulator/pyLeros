@@ -9,7 +9,7 @@ from pyleros import alu, ram
 
 
 @block
-def pyleros_exec(clk, reset, pipe_dec, pipe_imme, pipe_rd_addr, pipe_pc,
+def pyleros_exec(clk, reset, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc,
 				 back_acc, back_dm_data):
 	"""The execute module for pyleros. The modules is purely 
 	combinatorial, except for the updating the pipeline 
@@ -24,7 +24,7 @@ def pyleros_exec(clk, reset, pipe_dec, pipe_imme, pipe_rd_addr, pipe_pc,
         pipe_dec: IN List of the decode signals, from fedec
         pipe_imme: IN Immediate value, as taken from the lower bits 
         		of the instruction, from fedec
-        pipe_rd_addr: OUT DM read addr, pipeline registerm, from fedec
+        pipe_dm_addr: OUT DM read addr, pipeline registerm, from fedec
         pipe_pc: IN the value of PC, pipeline register, from fedec
         back_acc: OUT Value of the acc to send back to fedec.
         back_dm_data: OUT The data read from the DM, back to fedec for
@@ -62,7 +62,7 @@ def pyleros_exec(clk, reset, pipe_dec, pipe_imme, pipe_rd_addr, pipe_pc,
 		if not reset == True:
 			back_acc.next = acc
 			back_dm_data.next = dm_rd_data
-			dm_rd_addr.next = pipe_rd_addr
+			dm_rd_addr.next = pipe_dm_addr
 			dm_wr_addr.next = dm_wr_addr_dly
 
 
@@ -116,7 +116,7 @@ def pyleros_exec(clk, reset, pipe_dec, pipe_imme, pipe_rd_addr, pipe_pc,
 			acc.next = pre_accu | mask
 
 			# Set the delay registers
-			dm_wr_addr_dly.next = pipe_rd_addr
+			dm_wr_addr_dly.next = pipe_dm_addr
 			pc_dly.next = pipe_pc
 
 

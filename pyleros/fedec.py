@@ -10,7 +10,7 @@ from pyleros import decoder, rom
 
 @block
 def pyleros_fedec(clk, reset, acc, dm_data,
-				pipe_dec, pipe_imme, pipe_rd_addr, pipe_pc, filename=None):
+				pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc, filename=None):
 	"""The fedec module for pyleros, that is, the fetch
 	and decode pipeline stage. The modules is purely 
 	combinatorial, except for the updating the pipeline 
@@ -33,7 +33,7 @@ def pyleros_fedec(clk, reset, acc, dm_data,
         pipe_dec: OUT List of the decode signals, pass on to the execute stage
         pipe_imme: OUT Immediate value, as taken from the lower bits 
         		of the instruction, pass on to execute stage
-        pipe_rd_addr: OUT DM read addr, pipeline register
+        pipe_dm_addr: OUT DM read addr, pipeline register
         pipe_pc: OUT the value of PC, pipeline register
 
     Parameters:
@@ -80,11 +80,11 @@ def pyleros_fedec(clk, reset, acc, dm_data,
 			# Indirect Addressing(with offset) 
 			# for indirect load/store
 			if decode[t_decSignal.indls] == True:
-				pipe_rd_addr.next = offset_addr[DM_BITS:] 
+				pipe_dm_addr.next = offset_addr[DM_BITS:] 
 
 			# Direct Addressing
 			else:
-				pipe_rd_addr.next = instr[DM_BITS:]
+				pipe_dm_addr.next = instr[DM_BITS:]
 
 	@always_comb
 	def branch_sel():
