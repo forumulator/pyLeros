@@ -3,7 +3,7 @@ An implementation of Leros core in MyHDL. Orignal project (in VHDL by Martin Sch
 
 <!-- banner -->
  
-[![Build Status](https://travis-ci.org/forumulator/pyLeros.svg?branch=dev-exp)](https://travis-ci.org/forumulator/pyLeros)
+[![Build Status](https://travis-ci.org/forumulator/pyLeros.svg?branch=core)](https://travis-ci.org/forumulator/pyLeros)
  
 Leros
 =====
