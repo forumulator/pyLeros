@@ -32,6 +32,7 @@ def pyleros_im(clk, reset, rd_addr, rd_data, filename = None):
 
 	# convert list into tupple for automatic conversion
 	IM_array = tuple(IM)
+	
 
 	# print("\nFinal mem\n")
 	# for i in range(10):

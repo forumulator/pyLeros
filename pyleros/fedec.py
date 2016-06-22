@@ -148,7 +148,7 @@ def pyleros_fedec(clk, reset, acc, dm_data,
 	# the only seq. part of the module
 	@always_seq(clk.posedge, reset=reset)
 	def fedec_set():
-
+ 
 			pc.next = pc_next
 
 			# Set the control signals for the
