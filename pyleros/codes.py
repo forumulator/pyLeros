@@ -34,4 +34,39 @@ dlist = [t_decSignal.op, t_decSignal.al_ena, t_decSignal.ah_ena, t_decSignal.log
 
 
 
+def conv_bin(instr=None):
+	if instr == None:
+		return
 
+	bin_code = 0x00
+	if instr == 'NOP':
+		bin_code = 0x00
+
+	elif instr == 'ADD':
+		bin_code = 0x08
+
+	elif instr == 'SUB':
+		bin_code = 0x0c
+
+	elif instr == 'SHR':
+		bin_code = 0x10
+
+	elif instr == 'AND':
+		bin_code = 0x22
+
+	elif instr == 'OR':
+		bin_code = 0x24
+
+	elif instr == 'XOR':
+		bin_code = 0x26
+
+	elif instr == 'LOAD':
+		bin_code == 0x20
+
+	elif instr == 'LOADH':
+		bin_code == 0x28
+
+	elif instr == 'STORE':
+		bin_code == 0x30
+
+	return bin_code

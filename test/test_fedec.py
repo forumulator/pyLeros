@@ -1,14 +1,11 @@
-from pyleros.fedec import sign_extend, pyleros_fedec
-from pyleros.codes import dlist
+from pyleros import fedec, alu
+from pyleros.fedec import sign_extend
+from pyleros.codes import dlist, codes, conv_bin
 from pyleros.types import alu_op_type, t_decSignal, IM_BITS, DM_BITS
 
 import pytest
 
 from myhdl import *
-
-from rhea.system import Clock, Reset
-
-from rhea.utils.test import run_testbench
 
 import random
 from random import randrange
@@ -16,76 +13,152 @@ from datetime import datetime
 
 random.seed(int(datetime.now().time().second))
 
+# Test with immediate instructions.
 @pytest.mark.xfail
-def test_fedec(args=None):
-	"""Test the fetch/decode module in pyleros
+def test_fedec_imm():
+	
+	@block
+	def tb_fedec_top():
+		"""Test the alu module in pyleros
 
-	"""
-	clock = Signal(bool(0))
-	reset = ResetSignal(1, active=1, async=True)
+		"""
 
-	acc, dm_data = [Signal(intbv(0)[16:])] * 2
+		clock = Signal(bool(0))
+		reset = ResetSignal(0, active=1, async=True)
 
-	pipe_dec = [False for sig in dlist]
-	pipe_dec[int(t_decSignal.op)] = alu_op_type.LD
+		# FEDEC SIGNALS
+		in_acc, in_dm_data = [Signal(intbv(0)[16:])] * 2
+		out_imme = Signal(intbv(0)[16:])
+		out_dm_addr = Signal(intbv(0)[DM_BITS:])
+		out_pc = Signal(intbv(0)[IM_BITS:])
 
-	pipe_imme = Signal(intbv(0)[16:])
-	pipe_rd_addr = Signal(intbv(0)[DM_BITS:])
+		d, e = {}, {}
+		for i in dlist:
+			d[str(i)] = Signal(bool(0))
+			
+		d['op'] = Signal(alu_op_type.LD)
 
-	pipe_pc = Signal(intbv(0)[IM_BITS:])
-
-	instr_array = [0 for _ in range(IM_SIZE)]
-
-	@always(delay(10))
-	def tbclk():
-	    clock.next = not clock
+		out_dec = [d[str(sig)] for sig in dlist]
+	
 
 
-	def _bench_load():
+		# ALU SIGNALS
+		# out_list
+		alu_acc, alu_opd, alu_res = [Signal(intbv(0)[16:])] * 3
+		
 
-		# instantiate the rom
-		for i in range(IM_SIZE):
-			# LOADI for the second half of the memory
-			if i > int(IM_SIZE /2):
-				imm = randrange(2**8)
-				# LOADI in the first 8 bits and a random
-				# imm value in the lower bits
-				instr_array = [(0x2100) | (im & 0xff)]
+		alu_inst = alu.pyleros_alu(out_dec, alu_acc, alu_opd, alu_res)
 
-		inst_fedec = pyleros_fedec(clock, reset, acc, dm_data,
-								pipe_dec, pipe_imme, pipe_rd_addr,
-								pipe_pc, filename=instr_array)
+
+	
+		instr_list, bin_list = [], []
+
+
+		for instr in codes:
+			if codes[instr][2] == False:
+				continue
+
+			for trie in range(3):
+
+				op1 = randrange(2**16)
+				# 8-bit imm opd
+				op2 = randrange(2**8)
+
+				bin_code = conv_bin(instr)
+				# Immediate version
+				bin_imme = bin_code | 0x01
+
+				instr_list.append([instr, op1, op2])
+
+				#Add operand op2 to instr
+				bin_code = (bin_code << 8) | (op2 & 0xff)
+
+				bin_list.append(bin_code)
+
+
+		fedec_inst = fedec.pyleros_fedec(clock, reset, in_acc, in_dm_data, \
+										out_dec, out_imme, out_dm_addr, out_pc, filename=bin_list)
+
+
+		@always(delay(10))
+		def tbclk():
+			clock.next = not clock		
+
+			
 
 		@instance
 		def tbstim():
 
-			for i in range(5):
+			# To start the fetch/decoding
+			# reset.next = not reset.active
+			# yield delay(12)
+
+			
+
+			# In the first cycle nothing happens since
+			# only the instuction is updated, and the 
+			# decoder, the output from fedec doesn't change 
+			# till after the second cycle.
+			yield clock.posedge
+
+			raise Exception
+
+			ninstr = len(instr_list)
+			for addr in range(ninstr):
+
+
+				# for the alu, op1 signifies the acc adn
+				# op2 the opd
+				instr, op1, op2 = instr_list[addr]
+
 				yield clock.posedge
+				yield delay(1)
 
-			for tryn in range(IM_SIZE):
+				alu_acc.next = op1
+				alu_opd.next = out_imme
 
-				addr = randrange(IM_SIZE)
+				yield delay(33)
 
-				rd_addr.next = addr
+				#check for correct result
+				if instr == 'NOP':
+					pass
 
-				for i in range(2):
-					yield clock.posedge
+				elif instr == 'ADD':
+					assert alu_res == ((op1 + op2) & 0xffff)
 
-				assert rd_data == instr_array[addr]			
+				elif instr == 'SUB':
+					assert alu_res == ((op1 - op2) & 0xffff)
 
-				for i in range(2):
-					yield clock.posedge	
+				elif instr == 'SHR':
+					assert alu_res == (op1 & 0xffff) >> 1
 
-			for ii in range(5):
-				yield clock.posedge
+				elif instr == 'AND':
+					assert alu_res == (op1 & op2) & 0xffff
+
+				elif instr == 'OR':
+					assert alu_res == (op1 | op2) & 0xffff
+
+				elif instr == 'XOR':
+					assert alu_res == (op1 ^ op2) & 0xffff
+
+				elif instr == 'LOAD':
+					assert alu_res == op2 & 0xffff
+
+
+			
 
 
 			raise StopSimulation
 
-		return tbstim, im_inst, tbclk
+		return instances()
 
-	for jj in range(10):
-		run_testbench(_bench_dec)
+
+	# Just decoder and ALU
+	top_inst = tb_fedec_top()
+	top_inst.run_sim()
+
+
+
 
 
 
@@ -116,9 +189,8 @@ def test_sign_extend(args=None):
 			assert exbits < nbits
 
 
+
 if __name__ == "__main__":
 
-	test_fedec()
+	test_alu()
 	test_sign_extend()
-
-

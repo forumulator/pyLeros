@@ -37,136 +37,142 @@ def pyleros_fedec(clk, reset, acc, dm_data,
         pipe_pc: OUT the value of PC, pipeline register
 
     Parameters:
+
 	    filename: Name of the file or a list containing the instructions
 
 	"""
 
-	im_addr = Signal[intbv(0)[IM_BITS:]]
+	im_addr = Signal(intbv(0)[IM_BITS:])
 
-	instr = Signal[intbv(0)[16:]]
-	instr_hi = Signal[intbv(0)[8:]]
+	instr = Signal(intbv(0)[16:])
+	instr_hi = Signal(intbv(0)[8:])
 
 	branch_en, acc_z = False, True
 
-	pc, pc_next = Signal[intbv(0)[IM_BITS:]] * 2
-	pc_op, pc_next = intbv(0)[IM_BITS:]
+	pc, pc_next = [Signal(intbv(0)[IM_BITS:])] * 2
+	pc_add = intbv(0)[IM_BITS:]
 
-	decode = [Signal(Bool(0)) for i in dlist]
+	decode = [Signal(bool(0)) for i in dlist]
 	decode[int(t_decSignal.op)] = Signal(alu_op_type.LD)
 
 	# Instantiate the instruction memory
-	im_inst = rom.pyleros_im(clk, reset, im_addr, instr, filename)
+	im_inst = rom.pyleros_im(clk, reset, im_addr, instr, filename=filename)
 
 	# Instantiate the decoder
-	dec_inst = decoder.pyleros_decoder(instr_hi, decode, reset=reset)
+	dec_inst = decoder.pyleros_decoder(instr_hi, decode)
 
 	@always_comb
 	def sync_sig():
 
-		if not reset == reset.active:
-			instr_hi.next = instr[16:8]
-			im_addr.next = pc_next
-			pipe_pc.next = pc_add
+		# if not reset == reset.active:
+		instr_hi.next = instr[16:8]
+		im_addr.next = pc_next
+		pipe_pc.next = pc_add
 
 
 	@always_comb
 	def dm_addr_sel():
 
-		if not reset == reset.active:
-			# Note ind ls adds the 8 bit immediate offset
-			# to the previous value of the dm_
-			offset_addr = intbv(dm_data + instr[8:0])[16:]
-			
-			# Indirect Addressing(with offset) 
-			# for indirect load/store
-			if decode[t_decSignal.indls] == True:
-				pipe_dm_addr.next = offset_addr[DM_BITS:] 
+		# if not reset == reset.active:
+		# Note ind ls adds the 8 bit immediate offset
+		# to the previous value of the dm_
+		offset_addr = intbv(dm_data + instr[8:0])[16:]
+		
+		# Indirect Addressing(with offset) 
+		# for indirect load/store
+		if decode[int(t_decSignal.indls)] == True:
+			pipe_dm_addr.next = offset_addr[DM_BITS:] 
 
-			# Direct Addressing
-			else:
-				pipe_dm_addr.next = instr[DM_BITS:]
+		# Direct Addressing
+		else:
+			pipe_dm_addr.next = instr[DM_BITS:]
 
 	@always_comb
 	def branch_sel():
 
-		if not reset == reset.active:
-			if acc == 0:
-				acc_z = True
+		# if not reset == reset.active:
+		if acc == 0:
+			acc_z = True
 
-			else:
-				acc_z = False
+		else:
+			acc_z = False
 
-			branch_en = 0
+		branch_en = 0
 
-			if decode[int(t_decSignal.br_op)] == True:
-				br_type = instr[11:8]
+		if decode[int(t_decSignal.br_op)] == True:
+			br_type = instr[11:8]
 
-				if br_type == 0b000:
-					# BRANCH
-					branch_en == 1
+			if br_type == 0b000:
+				# BRANCH
+				branch_en == 1
 
-				elif br_type == 0b001:
-					# BRZ
-					branch_en = True if acc_z == True else False
+			elif br_type == 0b001:
+				# BRZ
+				branch_en = True if acc_z == True else False
 
-				elif br_type == 0b010:
-					# BRNZ
-					branch_en = True if acc_z == False else False
+			elif br_type == 0b010:
+				# BRNZ
+				branch_en = True if acc_z == False else False
 
-				elif br_type == 0b011:
-					# BRP
-					branch_en = True if acc[15] == False else False
+			elif br_type == 0b011:
+				# BRP
+				branch_en = True if acc[15] == False else False
 
-				elif br_type == 0b100:
-					# BRN
-					branch_en = True if acc[15] == True else False
+			elif br_type == 0b100:
+				# BRN
+				branch_en = True if acc[15] == True else False
 
 	# For selection of next PC address
 	@always_comb
 	def pc_mux():
 
-		if not reset == reset.active:
-			if branch_en == True:
-				# Sign extend the low 8 bits
-				# of instruction
-				pc_op[:] = sign_entend(instr, IM_BITS)
+		pc_add_tmp = intbv(0)[IM_BITS:]
+		pc_op = intbv(0)[IM_BITS:]
+		# if not reset == reset.active:
+		if branch_en == True:
+			# Sign extend the low 8 bits
+			# of instruction
+			pc_op[:] = sign_entend(instr, IM_BITS)
 
-			else:
-				pc_op[:] = 1
+		else:
+			pc_op[:] = 1
+		print(pc, pc_op)
 
-			pc_add[:] = pc + pc_op
+		pc_add_tmp[:] = (pc + pc_op)
 
-			# Add 1 or branch offset OR set the add
-			# to the jump addr
-			if decode[int(t_decSignal.jal)] == True: 
-				pc_next.next = accu[IM_BITS:]
+		# Add 1 or branch offset OR set the add
+		# to the jump addr
+		if decode[int(t_decSignal.jal)] == True: 
+			pc_next.next = accu[IM_BITS:]
 
-			else:
-				pc_next.next = pc_op
+		else:
+			pc_next.next = pc_add_tmp
+			pc_add = pc_add_tmp
 	
 	# Set the values on positive clock edge,
 	# the only seq. part of the module
 	@always_seq(clk.posedge, reset=reset)
 	def fedec_set():
  
-			pc.next = pc_next
+		raise Exception
+		pc.next = pc_next
 
-			# Set the control signals for the
-			# pipeline register
-			for sig in dlist:
-				pipe_dec[int(sig)].next = decode[int(sig)]
+		# Set the control signals for the
+		# pipeline register
+		for sig in dlist:
+			pipe_dec[int(sig)].next = decode[int(sig)]
 
-			# if decode[int(t_decSignal.add_sub)] == True:
-			# Set the immediate value
-			if decode[int(t_decSignal.loadh)] == True:
-				pipe_imme.next = instr[8:] << 8
-			
-			else:
-				pipe_imme.next = sign_extend(instr[8:], 16)
-			
-			# else:
-			# 	immr(7 downto 0) <= imout.data(7 downto 0);
-			# 	immr(15 downto 0) <= (others => '0');		
+		# if decode[int(t_decSignal.add_sub)] == True:
+		# Set the immediate value
+		if decode[int(t_decSignal.loadh)] == True:
+			pipe_imme.next = instr[8:] << 8
+
+		else:
+			pipe_imme.next = sign_extend(instr[8:], 16)
+
+		# else:
+		# 	immr(7 downto 0) <= imout.data(7 downto 0);
+		# 	immr(15 downto 0) <= (others => '0');		
 
 
 
