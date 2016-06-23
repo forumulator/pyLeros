@@ -1,9 +1,7 @@
-import myhdl
-from myhdl import instances, block, Signal, intbv, enum, \
+from myhdl import instances, block, Signal, intbv, \
                     always_comb, always_seq
 
-from pyleros.types import alu_op_type, t_decSignal, IM_BITS, DM_BITS
-from pyleros.codes import dlist
+from pyleros.types import t_decSignal, IM_BITS, DM_BITS
 
 from pyleros import alu, ram
 
@@ -59,7 +57,7 @@ def pyleros_exec(clk, reset, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc,
     @always_comb
     def sync_sig():
 
-        if not reset == True:
+        if not reset:
             back_acc.next = acc
             back_dm_data.next = dm_rd_data
             dm_rd_addr.next = pipe_dm_addr
@@ -72,7 +70,7 @@ def pyleros_exec(clk, reset, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc,
         if not reset:
             # Mux for selecting the value of operand, that is,
             # Data Memory read/ Immediate value retrieve
-            if pipe_dec[int(t_decSignal.sel_imm)] == True:
+            if pipe_dec[int(t_decSignal.sel_imm)]:
                 # Immediate
                 opd.next = pipe_imme
 
@@ -86,7 +84,7 @@ def pyleros_exec(clk, reset, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc,
         if not reset:
             # MUX for selecting the data to be written
             # in case of jal
-            if pipe_dec[int(t_decSignal.jal)] == True:
+            if pipe_dec[int(t_decSignal.jal)]:
                 temp = intbv(0)[16:]
                 temp[IM_BITS:0] = pc_dly
                 temp[16:IM_BITS] = 0

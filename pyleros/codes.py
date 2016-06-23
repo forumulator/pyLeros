@@ -1,4 +1,3 @@
-from myhdl import enum
 from pyleros.types import t_decSignal, alu_op_type
 
 # dictionary of all the codes
@@ -35,7 +34,7 @@ dlist = [t_decSignal.op, t_decSignal.al_ena, t_decSignal.ah_ena, t_decSignal.log
 
 
 def conv_bin(instr=None):
-    if instr == None:
+    if not instr:
         return
 
     bin_code = 0x00

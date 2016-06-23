@@ -80,7 +80,7 @@ def pyleros_fedec(clk, reset, acc, dm_data,
         
         # Indirect Addressing(with offset) 
         # for indirect load/store
-        if decode[int(t_decSignal.indls)] == True:
+        if decode[int(t_decSignal.indls)]:
             pipe_dm_addr.next = offset_addr[DM_BITS:] 
 
         # Direct Addressing
@@ -99,7 +99,7 @@ def pyleros_fedec(clk, reset, acc, dm_data,
 
         branch_en = 0
 
-        if decode[int(t_decSignal.br_op)] == True:
+        if decode[int(t_decSignal.br_op)]:
             br_type = instr[11:8]
 
             if br_type == 0b000:
@@ -108,19 +108,19 @@ def pyleros_fedec(clk, reset, acc, dm_data,
 
             elif br_type == 0b001:
                 # BRZ
-                branch_en = True if acc_z == True else False
+                branch_en = True if acc_z else False
 
             elif br_type == 0b010:
                 # BRNZ
-                branch_en = True if acc_z == False else False
+                branch_en = True if not acc_z else False
 
             elif br_type == 0b011:
                 # BRP
-                branch_en = True if acc[15] == False else False
+                branch_en = True if not acc[15] else False
 
             elif br_type == 0b100:
                 # BRN
-                branch_en = True if acc[15] == True else False
+                branch_en = True if acc[15] else False
 
     # For selection of next PC address
     @always_comb
@@ -129,7 +129,7 @@ def pyleros_fedec(clk, reset, acc, dm_data,
         pc_add_tmp = intbv(0)[IM_BITS:]
         pc_op = intbv(0)[IM_BITS:]
         # if not reset == reset.active:
-        if branch_en == True:
+        if branch_en:
             # Sign extend the low 8 bits
             # of instruction
             pc_op[:] = sign_extend(instr, IM_BITS)
@@ -142,7 +142,7 @@ def pyleros_fedec(clk, reset, acc, dm_data,
 
         # Add 1 or branch offset OR set the add
         # to the jump addr
-        if decode[int(t_decSignal.jal)] == True: 
+        if decode[int(t_decSignal.jal)]: 
             pc_next.next = acc[IM_BITS:]
 
         else:
@@ -164,7 +164,7 @@ def pyleros_fedec(clk, reset, acc, dm_data,
 
         # if decode[int(t_decSignal.add_sub)] == True:
         # Set the immediate value
-        if decode[int(t_decSignal.loadh)] == True:
+        if decode[int(t_decSignal.loadh)]:
             pipe_imme.next = instr[8:] << 8
 
         else:

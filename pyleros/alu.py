@@ -1,8 +1,8 @@
 import myhdl
-from myhdl import instances, block, Signal, intbv, enum, \
+from myhdl import instances, block, Signal, intbv, \
                     always_comb, always_seq
 
-from pyleros.types import alu_op_type, t_decSignal, IM_BITS, DM_BITS
+from pyleros.types import alu_op_type, t_decSignal, IM_BITS
 
 
 
@@ -27,7 +27,7 @@ def pyleros_alu(dec, acc, opd, pre_acc):
     @always_comb
     def op_add_sub():
 
-        if dec[int(t_decSignal.add_sub)] == False:
+        if not dec[int(t_decSignal.add_sub)]:
             res_arith = int((acc + opd) & 0xffff)
         else:
             res_arith = int((acc - opd) & 0xffff)
@@ -56,12 +56,12 @@ def pyleros_alu(dec, acc, opd, pre_acc):
     # based on the decoder control signals
     # @always_comb
     # def acc_mux():
-        if dec[int(t_decSignal.log_add)] == True:
+        if dec[int(t_decSignal.log_add)]:
             # ADD/ SUB
             pre_acc.next = res_arith
 
         else:
-            if dec[int(t_decSignal.shr)] == True:
+            if dec[int(t_decSignal.shr)]:
                 # SHR
                 pre_acc.next = intbv(acc >> 1)[16:]
 
@@ -71,22 +71,3 @@ def pyleros_alu(dec, acc, opd, pre_acc):
 
 
     return instances()
-
-
-
-# Sign extend an intbv or Signal to specified number of bits
-def sign_extend(num, bits = 0):
-
-    if (type(num) is intbv) or (type(num) is myhdl._Signal._Signal):
-        len_n = len(num)
-        sign_bit = int(num[len_n - 1])
-        num = ((sign_bit << len_n) * -1) + int(num[len_n:])
-        if bits != 0:
-            if -2**(bits-1) <= num <= (2**(bits-1) - 1) :
-                num = num & ((1 << bits) - 1)
-            else:
-                raise ValueError("Value " + str(num) + " too large to sign extend")
-        return num
-
-    else:
-        raise TypeError("Input needs to be " + str(type(Signal())) + ' or ' + str(type(intbv(0))))
