@@ -25,7 +25,6 @@ def fedblock(clk, reset, c, d):
 
 	@always_comb
 	def conn():
-		raise Exception
 		a.next = c + 1
 		
 	@always_seq(clk.posedge, reset=reset)
@@ -44,8 +43,8 @@ def main():
 	clk = Signal(bool(0))
 	clk2 = Signal(bool(0))
 	reset = ResetSignal(0, active=1, async=True)
-	c = 0
-	d = 0
+	c = Signal(int(0))
+	d = Signal(int(0))
 
 	@always(delay(10))
 	def tbclk():
@@ -60,12 +59,12 @@ def main():
 	@instance
 	def functest():
 
-		c = 0
+		c.next = 0
 		yield clk.posedge
 
 		for i in range(10):
 
-			c = i + 1
+			c.next = i + 1
 
 			yield clk.posedge
 			yield delay(1)
