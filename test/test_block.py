@@ -59,12 +59,12 @@ def main():
 	@instance
 	def functest():
 
-		c = 0
+		c.next = 0
 		yield clk.posedge
 
 		for i in range(10):
 
-			c = i + 1
+			c.next = i + 1
 
 			yield clk.posedge
 			yield delay(1)
