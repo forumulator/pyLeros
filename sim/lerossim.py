@@ -8,7 +8,7 @@ DM_SIZE = 1024
 IM, DM = [0 for i in range(IM_SIZE)], [0 for i in range(DM_SIZE)]
 progSize = 0
 
-acc = 0, pc = 0, ar = 0
+acc = 0; pc = 0; ar = 0
 
 # The delay values of the Acc, for the branch and jump instructions
 acc_dly, acc_dly1 = 0, 0
@@ -191,7 +191,7 @@ def instr_load(filename):
 	global progSize
 	src_file = open(filename,"rb")
 	if not src_file:
-	i = 1
+		i = 1
 	for line in src_file:
 
 		# Comments and empty lines
@@ -224,7 +224,7 @@ def mem_dump(succ):
 	global progSize, pc, acc
 
 	f = open("mem_dmp", "wb")
-	if succ ==1 True:
+	if succ == True:
 		print("Simulation Successful\n", file = f)
 		print("Program Size = " + progSize + "\n\n", file = f)
 		print("Executed instructions = " + executedInstr + "\n\n", file = f)
