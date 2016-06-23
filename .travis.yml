@@ -25,6 +25,7 @@ script:
   - cd test
   #- coverage run --source=rhea -m pytest --durations=10
   - py.test --durations=10
+  - coverage run --source pyleros -m py.test
 
 after_success:
   - coveralls
