@@ -5,7 +5,7 @@ An implementation of Leros core in MyHDL. Orignal project (in VHDL by Martin Sch
  
 [![Build Status](https://travis-ci.org/forumulator/pyLeros.svg?branch=dev-exp)](https://travis-ci.org/forumulator/pyLeros)
 [![Code Health](https://landscape.io/github/forumulator/pyLeros/dev-exp/landscape.svg?style=flat)](https://landscape.io/github/forumulator/pyLeros/dev-exp)
-[![Coverage Status](https://coveralls.io/repos/githubforumulator/pyLeros/badge.svg?branch=dev-exp)](https://coveralls.io/github/forumulator/pyLeros?branch=dev-exp)
+[![Coverage Status](https://coveralls.io/repos/github/forumulator/pyLeros/badge.svg?branch=dev-exp)](https://coveralls.io/github/forumulator/pyLeros?branch=dev-exp)
  
 Leros
 =====
