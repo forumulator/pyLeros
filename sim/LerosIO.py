@@ -29,7 +29,7 @@ class LerosIO:
 
 			ret = LerosIO.command[self.commandIndex]
 			self.commandIndex += 1
-			self.commandIndex %= len(command)
+			self.commandIndex %= len(LerosIO.command)
 
 		else:
 			raise IOError("Invalid IO Address " + hex(addr))
