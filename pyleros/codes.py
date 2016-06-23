@@ -27,46 +27,46 @@ codes['STORE'] = [0x30, [t_decSignal.store], False]
 # LOAD INDIRECT
 
 dlist = [t_decSignal.op, t_decSignal.al_ena, t_decSignal.ah_ena, t_decSignal.log_add, \
-		t_decSignal.add_sub, t_decSignal.shr, t_decSignal.sel_imm, t_decSignal.store, \
-		 t_decSignal.outp, t_decSignal.inp, t_decSignal.br_op, t_decSignal.jal, \
-					t_decSignal.loadh, t_decSignal.indls]
+        t_decSignal.add_sub, t_decSignal.shr, t_decSignal.sel_imm, t_decSignal.store, \
+         t_decSignal.outp, t_decSignal.inp, t_decSignal.br_op, t_decSignal.jal, \
+                    t_decSignal.loadh, t_decSignal.indls]
 
 
 
 
 def conv_bin(instr=None):
-	if instr == None:
-		return
+    if instr == None:
+        return
 
-	bin_code = 0x00
-	if instr == 'NOP':
-		bin_code = 0x00
+    bin_code = 0x00
+    if instr == 'NOP':
+        bin_code = 0x00
 
-	elif instr == 'ADD':
-		bin_code = 0x08
+    elif instr == 'ADD':
+        bin_code = 0x08
 
-	elif instr == 'SUB':
-		bin_code = 0x0c
+    elif instr == 'SUB':
+        bin_code = 0x0c
 
-	elif instr == 'SHR':
-		bin_code = 0x10
+    elif instr == 'SHR':
+        bin_code = 0x10
 
-	elif instr == 'AND':
-		bin_code = 0x22
+    elif instr == 'AND':
+        bin_code = 0x22
 
-	elif instr == 'OR':
-		bin_code = 0x24
+    elif instr == 'OR':
+        bin_code = 0x24
 
-	elif instr == 'XOR':
-		bin_code = 0x26
+    elif instr == 'XOR':
+        bin_code = 0x26
 
-	elif instr == 'LOAD':
-		bin_code == 0x20
+    elif instr == 'LOAD':
+        bin_code == 0x20
 
-	elif instr == 'LOADH':
-		bin_code == 0x28
+    elif instr == 'LOADH':
+        bin_code == 0x28
 
-	elif instr == 'STORE':
-		bin_code == 0x30
+    elif instr == 'STORE':
+        bin_code == 0x30
 
-	return bin_code
+    return bin_code
