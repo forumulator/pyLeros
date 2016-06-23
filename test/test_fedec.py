@@ -1,4 +1,4 @@
-from pyleros import fedec, alu
+from pyleros import fedec, alu, decoder
 from pyleros.fedec import sign_extend
 from pyleros.codes import dlist, codes, conv_bin
 from pyleros.types import alu_op_type, t_decSignal, IM_BITS, DM_BITS
@@ -13,8 +13,7 @@ from datetime import datetime
 
 random.seed(int(datetime.now().time().second))
 
-# Test with immediate instructions.
-@pytest.mark.xfail
+# Test with immediate instructions
 def test_fedec_imm():
 	
 	@block
@@ -35,16 +34,22 @@ def test_fedec_imm():
 		d, e = {}, {}
 		for i in dlist:
 			d[str(i)] = Signal(bool(0))
+			e[str(i)] = Signal(bool(0))
 			
 		d['op'] = Signal(alu_op_type.LD)
+		e['op'] = Signal(alu_op_type.LD)
 
 		out_dec = [d[str(sig)] for sig in dlist]
+		test_dec = [e[str(sig)] for sig in dlist]
 	
-
+		instr_hi = Signal(intbv(0)[8:])
+		dec_inst = decoder.pyleros_decoder(instr_hi, test_dec)
 
 		# ALU SIGNALS
 		# out_list
-		alu_acc, alu_opd, alu_res = [Signal(intbv(0)[16:])] * 3
+		alu_acc = Signal(intbv(0)[16:])
+		alu_opd = Signal(intbv(0)[16:])
+		alu_res = Signal(intbv(0)[16:])
 		
 
 		alu_inst = alu.pyleros_alu(out_dec, alu_acc, alu_opd, alu_res)
@@ -55,23 +60,23 @@ def test_fedec_imm():
 
 
 		for instr in codes:
-			if codes[instr][2] == False:
+			if (not codes[instr][2]) or (instr == 'NOP') or (instr == 'LOADH') or (instr == 'STORE'):
 				continue
 
-			for trie in range(3):
+			for trie in range(30):
 
-				op1 = randrange(2**16)
+				op1 = randrange(2**15)
 				# 8-bit imm opd
-				op2 = randrange(2**8)
+				op2 = randrange(2**7)
 
-				bin_code = conv_bin(instr)
+				bin_code = codes[instr][0]
 				# Immediate version
 				bin_imme = bin_code | 0x01
 
 				instr_list.append([instr, op1, op2])
 
 				#Add operand op2 to instr
-				bin_code = (bin_code << 8) | (op2 & 0xff)
+				bin_code = (bin_imme << 8) | (op2 & 0xff)
 
 				bin_list.append(bin_code)
 
@@ -80,7 +85,7 @@ def test_fedec_imm():
 										out_dec, out_imme, out_dm_addr, out_pc, filename=bin_list)
 
 
-		@always(delay(10))
+		@always(delay(100))
 		def tbclk():
 			clock.next = not clock		
 
@@ -91,40 +96,53 @@ def test_fedec_imm():
 
 			# To start the fetch/decoding
 			# reset.next = not reset.active
-			# yield delay(12)
-
 			
+
+			print("bin_list")
+			for i in range(10):
+				print(bin_list[i], instr_list[i][2])
 
 			# In the first cycle nothing happens since
 			# only the instuction is updated, and the 
 			# decoder, the output from fedec doesn't change 
 			# till after the second cycle.
-			yield clock.posedge
-
-			raise Exception
+			yield delay(12)
 
 			ninstr = len(instr_list)
-			for addr in range(ninstr):
+			for addr in range(1,ninstr):
 
-
+				# if addr == 10:
+				# 	raise StopSimulation
+				print(addr)
 				# for the alu, op1 signifies the acc adn
 				# op2 the opd
 				instr, op1, op2 = instr_list[addr]
+				instr_hi.next = (codes[instr][0] | 0x01)
 
 				yield clock.posedge
 				yield delay(1)
+				yield delay(1)
 
+				for sig in dlist:
+					print(str(sig))
+					assert test_dec[int(sig)] == out_dec[int(sig)]
+
+				print("Cmp Imm", op2, out_imme)
 				alu_acc.next = op1
 				alu_opd.next = out_imme
-
-				yield delay(33)
+				yield delay(20)
+				print("alu ops", op1, alu_acc, out_imme, alu_opd)
+				print("alu types", type(op1), type(alu_acc), type(out_imme), type(alu_opd))
+				print(out_dec[int(t_decSignal.add_sub)], out_dec[int(t_decSignal.log_add)])
+				for i in range(2):
+					yield delay(33)
 
 				#check for correct result
 				if instr == 'NOP':
 					pass
 
 				elif instr == 'ADD':
-					assert alu_res == ((op1 + op2) & 0xffff)
+					assert alu_res == int(op1) + int(op2)
 
 				elif instr == 'SUB':
 					assert alu_res == ((op1 - op2) & 0xffff)
