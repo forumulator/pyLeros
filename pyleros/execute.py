@@ -103,21 +103,21 @@ def pyleros_exec(clk, reset, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc,
     @always_seq(clk.posedge, reset=reset)
     def fedec_set():
 
-            # Write the accumulator based on the 
-            # high and low enable write control signals
-            high, low = 0x00, 0x00
-            if pipe_dec[int(t_decSignal.al_ena)]:
-                low = 0xff
-            if pipe_dec[int(t_decSignal.ah_ena)]:
-                high = 0xff
+        # Write the accumulator based on the 
+        # high and low enable write control signals
+        high, low = 0x00, 0x00
+        if pipe_dec[int(t_decSignal.al_ena)]:
+            low = 0xff
+        if pipe_dec[int(t_decSignal.ah_ena)]:
+            high = 0xff
 
-            mask = (high << 8) | low
+        mask = (high << 8) | low
 
-            acc.next = pre_accu | mask
+        acc.next = pre_accu | mask
 
-            # Set the delay registers
-            dm_wr_addr_dly.next = pipe_dm_addr
-            pc_dly.next = pipe_pc
+        # Set the delay registers
+        dm_wr_addr_dly.next = pipe_dm_addr
+        pc_dly.next = pipe_pc
 
 
 
