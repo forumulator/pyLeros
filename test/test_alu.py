@@ -60,8 +60,8 @@ def test_alu():
 
 				for trie in range(30):
 
-					op1 = randrange(2**16)
-					op2 = randrange(2**16)
+					op1 = randrange(2**15)
+					op2 = randrange(2**15)
 
 					bin_code = conv_bin(instr)
 
@@ -141,8 +141,8 @@ def test_alu():
 
 					for i in range(10):
 						# Choose random operands
-						op1 = randrange(2**16)
-						op2 = randrange(2**16)
+						op1 = randrange(2**15)
+						op2 = randrange(2**15)
 
 						# Set the decoder input
 						instr_op = codes[instr][0]

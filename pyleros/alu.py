@@ -6,7 +6,7 @@ from pyleros.types import alu_op_type, t_decSignal
 
 
 @block
-def pyleros_alu(dec, acc, opd, pre_acc):
+def pyleros_alu(dec, acc, opd, pre_acc, verbose=False):
     """The alu module for pyleros, purely combinatorial
 
     Arguments (ports):
@@ -20,14 +20,19 @@ def pyleros_alu(dec, acc, opd, pre_acc):
         None
     """
 
-    res_arith, res_log = intbv(0)[16:], intbv(0)[16:]
+    res_arith = intbv(0)[16:]
+    res_log = intbv(0)[16:]
 
     # Add and Subtract module
     @always_comb
     def op_add_sub():
 
+        if verbose:
+            print("inside alu", acc, opd)
         if not dec[int(t_decSignal.add_sub)]:
-            res_arith = int((acc + opd) & 0xffff)
+            res_arith = int(acc) + int(opd)
+            if verbose:
+                print(res_arith, acc + opd, acc, opd)
         else:
             res_arith = int((acc - opd) & 0xffff)
 

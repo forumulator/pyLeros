@@ -18,7 +18,7 @@ def test_fedec_imm():
 	
 	@block
 	def tb_fedec_top():
-		"""Test the alu module in pyleros
+		"""Test the fetch/ decode module in pyleros
 
 		"""
 

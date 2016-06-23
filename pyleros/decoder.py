@@ -3,7 +3,7 @@ from pyleros.types import alu_op_type, t_decSignal
 
 
 @block
-def pyleros_decoder(instr_hi, out_sig):
+def pyleros_decoder(instr_hi, out_sig, verbose=False):
     """The decoder module for pyleros, decodes the high bits
     of the instruction and generates the control signals. The modules is
     purely combinatorial. 
@@ -36,6 +36,8 @@ def pyleros_decoder(instr_hi, out_sig):
     @always_comb
     def decoder():
 
+        if verbose:
+            print("Inside decoder with instruction_hi:", instr_hi)
         # Set the defaults of all signals
         out_sig[int(t_decSignal.op)].next = alu_op_type.LD
         out_sig[int(t_decSignal.al_ena)].next = False

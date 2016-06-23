@@ -49,7 +49,8 @@ def pyleros_fedec(clk, reset, acc, dm_data,
 
     branch_en, acc_z = False, True
 
-    pc, pc_next = [Signal(intbv(0)[IM_BITS:])] * 2
+    pc = Signal(intbv(0)[IM_BITS:]) 
+    pc_next = Signal(intbv(0)[IM_BITS:])
     pc_add = intbv(0)[IM_BITS:]
 
     decode = [Signal(bool(0)) for i in dlist]
@@ -59,12 +60,13 @@ def pyleros_fedec(clk, reset, acc, dm_data,
     im_inst = rom.pyleros_im(clk, reset, im_addr, instr, filename=filename)
 
     # Instantiate the decoder
-    dec_inst = decoder.pyleros_decoder(instr_hi, decode)
+    dec_inst = decoder.pyleros_decoder(instr_hi, decode, True)
 
     @always_comb
     def sync_sig():
 
         # if not reset == reset.active:
+        print("hi_bits:",instr[16:8])
         instr_hi.next = instr[16:8]
         im_addr.next = pc_next
         pipe_pc.next = pc_add
@@ -129,10 +131,13 @@ def pyleros_fedec(clk, reset, acc, dm_data,
         pc_add_tmp = intbv(0)[IM_BITS:]
         pc_op = intbv(0)[IM_BITS:]
         # if not reset == reset.active:
+        print("start", pc, pc_op, instr, acc, pc_add_tmp, instr)
+
         if branch_en:
             # Sign extend the low 8 bits
             # of instruction
-            pc_op[:] = sign_extend(instr, IM_BITS)
+            temp = instr
+            pc_op[:] = sign_extend(temp, IM_BITS)
 
         else:
             pc_op[:] = 1
@@ -148,18 +153,12 @@ def pyleros_fedec(clk, reset, acc, dm_data,
         else:
             pc_next.next = pc_add_tmp
             pc_add = pc_add_tmp
+        print("end", pc, pc_op, instr, acc, pc_add_tmp, instr)
     
     # Set the values on positive clock edge,
     # the only seq. part of the module
-    @always_seq(clk.posedge, reset=reset)
-    def fedec_set():
- 
-        pc.next = pc_next
-
-        # Set the control signals for the
-        # pipeline register
-        for sig in dlist:
-            pipe_dec[int(sig)].next = decode[int(sig)]
+    @always_comb
+    def intr_pipe():
 
         # if decode[int(t_decSignal.add_sub)] == True:
         # Set the immediate value
@@ -167,13 +166,22 @@ def pyleros_fedec(clk, reset, acc, dm_data,
             pipe_imme.next = instr[8:] << 8
 
         else:
-            pipe_imme.next = sign_extend(instr[8:], 16)
+            pipe_imme.next = instr[8:]
 
         # else:
         #   immr(7 downto 0) <= imout.data(7 downto 0);
         #   immr(15 downto 0) <= (others => '0');       
+        # Set the control signals for the
+        # pipeline register
+        for sig in dlist:
+            pipe_dec[int(sig)].next = decode[int(sig)]
 
+    @always_seq(clk.posedge, reset=reset)
+    def other_pipe():
 
+        pc.next = pc_next
+
+        
 
 
     return instances()
