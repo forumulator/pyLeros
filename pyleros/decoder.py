@@ -1,4 +1,4 @@
-from myhdl import instances, block, Signal, enum, always_comb
+from myhdl import instances, block, enum, always_comb
 from pyleros.types import alu_op_type, t_decSignal
 
 

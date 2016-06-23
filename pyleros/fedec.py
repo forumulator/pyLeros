@@ -1,5 +1,5 @@
 import myhdl
-from myhdl import instances, block, Signal, intbv, enum, \
+from myhdl import instances, block, Signal, intbv, \
                     always_comb, always_seq
 
 from pyleros.types import alu_op_type, t_decSignal, IM_BITS, DM_BITS
@@ -154,7 +154,6 @@ def pyleros_fedec(clk, reset, acc, dm_data,
     @always_seq(clk.posedge, reset=reset)
     def fedec_set():
  
-        raise Exception
         pc.next = pc_next
 
         # Set the control signals for the

@@ -26,7 +26,7 @@ executedInstr = 0
 # the stored results can be interpreted as required.
 def simulate():
 
-	global progSize, acc, pc, ar, acc_dly, acc_dly1, executedInstr
+	global acc, pc, ar, acc_dly, acc_dly1, executedInstr
 	while True:
 
 		acc_dly = acc_dly1
@@ -47,7 +47,7 @@ def simulate():
 		if ((instr >> 8) & 0x01) != 0:
 			# Use the immediate value
 
-			val = inst & 0xff
+			val = instr & 0xff
 
 			# Sign-extend
 			if (val & 0x80) != 0:
@@ -175,7 +175,6 @@ def simulate():
 			else:
 				raise ValueError("Invalid Instruction at address " + str(pc) + \
 					" : " + str(instr))
-				return 1
 
 		executedInstr += 1
 		acc = acc & 0xff 
@@ -260,16 +259,14 @@ def main():
 	# check for file exist
 	if os.path.exists(filename) == False:
 		raise FileNotFoundError('Source file does not exist')
-		exit(1)
 
 	load_stat = instr_load(filename)
 	if load_stat == 1:
 		raise ValueError('File not in proper format')
-		exit(1)
 
 	else:
 		print("Instruction Memory has " + str(progSize) + " words\n")
-		sim_stat = simluate()
+		sim_stat = simulate()
 		if sim_stat == 0:
 			mem_dump(True)
 

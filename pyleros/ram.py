@@ -1,4 +1,4 @@
-from myhdl import block, Signal, intbv, instances, always_seq
+from myhdl import block, intbv, instances, always_seq
 from pyleros.types import DM_BITS
 
 
@@ -32,7 +32,7 @@ def pyleros_dm(clk, reset, rd_addr, wr_addr, wr_data, wr_en, rd_data):
     @always_seq(clk.posedge, reset=reset)
     def DM_rw():
 
-        if wr_en == True:
+        if wr_en:
             # Write enabled
             if wr_addr >= DM_SIZE:
                 raise ValueError("Write addr " + hex(wr_addr) + "out of bounds")

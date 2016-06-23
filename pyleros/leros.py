@@ -1,7 +1,7 @@
 from myhdl import instances, block, Signal, intbv, \
-                    always_comb, always_seq
+                    always_comb
 
-from pyleros.types import alu_op_type, t_decSignal, IM_BITS, DM_BITS
+from pyleros.types import alu_op_type, IM_BITS, DM_BITS
 from pyleros.codes import dlist
 
 from pyleros import fedec, execute

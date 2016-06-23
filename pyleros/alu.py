@@ -1,8 +1,7 @@
-import myhdl
-from myhdl import instances, block, Signal, intbv, \
+from myhdl import instances, block, intbv, \
                     always_comb, always_seq
 
-from pyleros.types import alu_op_type, t_decSignal, IM_BITS
+from pyleros.types import alu_op_type, t_decSignal
 
 
 
