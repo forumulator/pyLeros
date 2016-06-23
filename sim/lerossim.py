@@ -190,7 +190,7 @@ def instr_load(filename):
 
 	global progSize
 	src_file = open(filename,"rb")
-	if not src_file
+	if not src_file:
 	i = 1
 	for line in src_file:
 
