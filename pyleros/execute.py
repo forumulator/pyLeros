@@ -22,7 +22,7 @@ def pyleros_exec(clk, reset, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc,
         pipe_dec: IN List of the decode signals, from fedec
         pipe_imme: IN Immediate value, as taken from the lower bits 
                 of the instruction, from fedec
-        pipe_dm_addr: OUT DM read addr, pipeline registerm, from fedec
+        pipe_dm_addr: OUT DM read addr, pipeline register, from fedec
         pipe_pc: IN the value of PC, pipeline register, from fedec
         back_acc: OUT Value of the acc to send back to fedec.
         back_dm_data: OUT The data read from the DM, back to fedec for
@@ -34,7 +34,9 @@ def pyleros_exec(clk, reset, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc,
     """
 
     # Define the Accumulator
-    acc, opd, pre_accu = [Signal(intbv(0)[16:])] * 3
+    acc = Signal(intbv(0)[16:])
+    opd = Signal(intbv(0)[16:])
+    pre_accu = Signal(intbv(0)[16:])
 
     # Signals to instantiate the DM
     dm_wr_addr = Signal(intbv(0)[DM_BITS:])
@@ -48,7 +50,7 @@ def pyleros_exec(clk, reset, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc,
     dm_wr_addr_dly = Signal(intbv(0)[DM_BITS:])
 
     # Instantiate the ALU
-    alu_inst = alu.pyleros_alu(pipe_dec, acc, opd, pre_accu)
+    alu_inst = alu.pyleros_alu(pipe_dec, acc, opd, pre_accu, verbose = True)
 
     # Instantiate the DM
     dm_inst = ram.pyleros_dm(clk, reset, dm_rd_addr, dm_wr_addr, dm_wr_data, dm_wr_en, dm_rd_data)
@@ -57,49 +59,64 @@ def pyleros_exec(clk, reset, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc,
     @always_comb
     def sync_sig():
 
-        if not reset:
-            back_acc.next = acc
-            back_dm_data.next = dm_rd_data
-            dm_rd_addr.next = pipe_dm_addr
-            dm_wr_addr.next = dm_wr_addr_dly
+        # if not reset:
+        back_acc.next = acc
+        back_dm_data.next = dm_rd_data
+        dm_rd_addr.next = pipe_dm_addr
+        # dm_wr_addr.next = dm_wr_addr_dly
 
 
     @always_comb
     def opd_mux():
 
-        if not reset:
-            # Mux for selecting the value of operand, that is,
-            # Data Memory read/ Immediate value retrieve
-            if pipe_dec[int(t_decSignal.sel_imm)]:
-                # Immediate
-                opd.next = pipe_imme
+        # if not reset:
+        # Mux for Data Memory read/ Immediate value retrieve
+        if pipe_dec[int(t_decSignal.sel_imm)]:
+            # Immediate
+            opd.next = pipe_imme
 
-            else:
-                opd.next = dm_rd_data
+        else:
+            opd.next = dm_rd_data
 
 
     @always_comb
-    def mux_jal():
+    def mux_write_dm():
+  
+        if pipe_dec[int(t_decSignal.store)]:
+            dm_wr_en.next = True
+        else:
+            dm_wr_en.next = False
 
-        if not reset:
-            # MUX for selecting the data to be written
-            # in case of jal
-            if pipe_dec[int(t_decSignal.jal)]:
-                temp = intbv(0)[16:]
-                temp[IM_BITS:0] = pc_dly
-                temp[16:IM_BITS] = 0
+        # MUX for selecting the data to be written
+        # in case of jal
+        if pipe_dec[int(t_decSignal.jal)]:
+            temp = intbv(0)[16:]
+            temp[IM_BITS:0] = pc_dly
+            temp[16:IM_BITS] = 0
 
-                dm_wr_data.next = temp
+            dm_wr_data.next = temp
 
-            else:
-                dm_wr_data.next = acc
+        else:
+            # acc and DM will never need to be modified in the same
+            # clock cycle ever(coz DM is only written in store)
+            # Thus both assignments can be seq.
+            dm_wr_data.next = acc
 
 
-    
+    @always_comb
+    def comb_set_sig():
+
+        # delay wr_addr, needed
+        # dm_wr_addr_dly.next = pipe_dm_addr
+
+        # delay PC, needed to link in JAL
+        pc_dly.next = pipe_pc
+
+
     # Set the values on positive clock edge,
     # the only seq. part of the module
     @always_seq(clk.posedge, reset=reset)
-    def fedec_set():
+    def seq_set_sig():
 
         # Write the accumulator based on the 
         # high and low enable write control signals
@@ -111,13 +128,7 @@ def pyleros_exec(clk, reset, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc,
 
         mask = (high << 8) | low
 
-        acc.next = pre_accu | mask
+        acc.next = pre_accu & mask
 
-        # Set the delay registers
-        dm_wr_addr_dly.next = pipe_dm_addr
-        pc_dly.next = pipe_pc
-
-
-
-
+       
     return instances()
