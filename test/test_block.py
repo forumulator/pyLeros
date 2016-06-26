@@ -40,19 +40,8 @@ def fedblock(clk, reset, c, d):
 @block
 def main():
 
-	clk = Signal(bool(0))
-	clk2 = Signal(bool(0))
-	reset = ResetSignal(0, active=1, async=True)
-	c = Signal(int(0))
-	d = Signal(int(0))
-
-	@always(delay(10))
-	def tbclk():
-		clk.next = not clk
-
-	@always(clk.posedge)
-	def tbclk2():
-		clk2.next = not clk2
+	clk, clk2, reset, c, d = set_sigs()
+	inst_clks = inst_blocks(clk, clk2)	
 
 	instfed = fedblock(clk, reset, c, d)
 
@@ -75,10 +64,33 @@ def main():
 
 	return instances()
 
+
+def set_sigs():
+
+	clk = Signal(bool(0))
+	clk2 = Signal(bool(0))
+	reset = ResetSignal(0, active=1, async=True)
+	c = Signal(int(0))
+	d = Signal(int(0))
+
 	
 
+	return clk, clk2, reset, c, d
 
 
+@block
+def inst_blocks(clk, clk2):
+
+	@always(delay(10))
+	def tbclk():
+		clk.next = not clk
+
+	@always(clk.posedge)
+	def tbclk2():
+		clk2.next = not clk2	
+
+
+	return instances()
 
 #This works currently
 @block

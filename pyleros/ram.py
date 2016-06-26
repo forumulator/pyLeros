@@ -32,15 +32,15 @@ def pyleros_dm(clk, reset, rd_addr, wr_addr, wr_data, wr_en, rd_data):
     @always_seq(clk.posedge, reset=reset)
     def DM_rw():
 
+        rd_data.next = DM[int(rd_addr)]
+
         if wr_en:
             # Write enabled
             if wr_addr >= DM_SIZE:
                 raise ValueError("Write addr " + hex(wr_addr) + "out of bounds")
             else:   
+                print("At {addr} : {val}".format(addr=wr_addr, val=wr_data.val))
                 DM[int(wr_addr)] = intbv(wr_data.val)[16:]
-
-
-        rd_data.next = DM[int(rd_addr)]
 
     return instances()
 

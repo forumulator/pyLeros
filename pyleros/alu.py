@@ -30,11 +30,11 @@ def pyleros_alu(dec, acc, opd, pre_acc, verbose=False):
         if verbose:
             print("inside alu", acc, opd)
         if not dec[int(t_decSignal.add_sub)]:
-            res_arith = int(acc) + int(opd)
+            res_arith = (int(acc) + int(opd)) & 0xffff
             if verbose:
                 print(res_arith, acc + opd, acc, opd)
         else:
-            res_arith = int((acc - opd) & 0xffff)
+            res_arith = (int(acc) - int(opd)) & 0xffff
 
     # for the logical operations
     # @always_comb
