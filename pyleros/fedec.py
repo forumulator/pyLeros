@@ -69,7 +69,7 @@ def pyleros_fedec(clk, reset, acc, dm_data,
         print("hi_bits:",instr[16:8])
         instr_hi.next = instr[16:8]
         im_addr.next = pc_next
-        pipe_pc.next = pc_add
+        pipe_pc.next = pc_add  
 
 
     @always_comb
@@ -78,16 +78,16 @@ def pyleros_fedec(clk, reset, acc, dm_data,
         # if not reset == reset.active:
         # Note ind ls adds the 8 bit immediate offset
         # to the previous value of the dm_
-        offset_addr = intbv(dm_data + instr[8:0])[16:]
+        # offset_addr = intbv(dm_data + instr[8:0])[16:]
         
         # Indirect Addressing(with offset) 
         # for indirect load/store
-        if decode[int(t_decSignal.indls)]:
-            pipe_dm_addr.next = offset_addr[DM_BITS:] 
+        # if decode[int(t_decSignal.indls)]:
+        #     pipe_dm_addr.next = offset_addr[DM_BITS:] 
 
         # Direct Addressing
-        else:
-            pipe_dm_addr.next = instr[DM_BITS:]
+        # else:
+        pipe_dm_addr.next = instr[DM_BITS:]
 
     @always_comb
     def branch_sel():
@@ -162,11 +162,11 @@ def pyleros_fedec(clk, reset, acc, dm_data,
 
         # if decode[int(t_decSignal.add_sub)] == True:
         # Set the immediate value
-        if decode[int(t_decSignal.loadh)]:
-            pipe_imme.next = instr[8:] << 8
+        # if decode[int(t_decSignal.loadh)]:
+        #     pipe_imme.next = instr[8:] << 8
 
-        else:
-            pipe_imme.next = instr[8:]
+        # else:
+        pipe_imme.next = instr[8:]
 
         # else:
         #   immr(7 downto 0) <= imout.data(7 downto 0);
@@ -199,7 +199,7 @@ def sign_extend(num, bits = 0):
             if -2**(bits-1) <= num <= (2**(bits-1) - 1) :
                 num = num & ((1 << bits) - 1)
             else:
-                raise ValueError("Value " + str(num) + " too large to sign extend")
+                raise ValueError("Value " + str(num) + " too larg e to sign extend")
         return num
 
     else:

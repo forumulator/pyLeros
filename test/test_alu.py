@@ -63,10 +63,10 @@ def test_alu():
 					op1 = randrange(2**15)
 					op2 = randrange(2**15)
 
-					bin_code = conv_bin(instr)
+					bin_code = codes[instr][0]
 
 					instr_list.append([instr, op1, op2])
-					bin_code = (bin_code << 8) & 0xff00
+					bin_code = (bin_code << 8)
 
 					bin_list.append(bin_code)
 
@@ -98,10 +98,11 @@ def test_alu():
 					rd_addr.next = intbv(addr)[IM_BITS:]
 
 					yield clock.posedge
-					yield delay(1)
+					yield delay(2)
 
-					upp = (int(rd_data) & 0xff00) >> 8
-
+					assert rd_data == bin_list[rd_addr]
+					upp = (int(rd_data)) >> 8
+					assert upp == codes[instr][0]
 					instr_hi.next = intbv(upp)[8:]
 
 					alu_acc.next = op1

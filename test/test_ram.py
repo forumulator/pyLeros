@@ -16,13 +16,12 @@ from datetime import datetime
 random.seed(int(datetime.now().time().second))
 
 
-@pytest.mark.xfail
 def test_ram(args=None):
 	"""Test the data memory module in pyleros
 
 	"""
 	clock = Signal(bool(0))
-	reset = ResetSignal(1, active=0, async=True)
+	reset = ResetSignal(0, active=1, async=True)
 
 	rd_addr, wr_addr = [Signal(intbv(0)[DM_BITS:])] * 2
 	rd_data, wr_data = [Signal(intbv(0)[16:])] * 2
@@ -46,14 +45,15 @@ def test_ram(args=None):
 		@instance
 		def tbstim():
 
-			reset.next = 0
-			yield delay(33)
-			reset.next = 1
+			# reset.next = 0
+			# yield delay(33)
 			
-			for i in range(5):
-				yield clock.posedge
+			# for i in range(5):
+			#  yield clock.posedge
 
 			# write all the data
+			for addr in range(DM_SIZE):
+				print(data_array[addr])
 
 			for addr in range(DM_SIZE):
 
@@ -61,8 +61,7 @@ def test_ram(args=None):
 				wr_data.next = intbv(data_array[addr])[16:]
 				wr_en.next = True
 				
-				for i in range(2):
-					yield clock.posedge
+				yield clock.posedge
 
 				yield delay(1)
 

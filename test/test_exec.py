@@ -183,7 +183,7 @@ class TestClass:
 
 
 
-	@pytest.mark.skip
+	# @pytest.mark.skip
 	def test_ls(self):
 
 		@block
@@ -219,17 +219,31 @@ class TestClass:
 					in_dm_addr.next = addr
 					in_imm.next = 0
 					yield clock.posedge
-					yield delay(2)
-
+					# yield delay(2)
 					instr_bin = intbv(0x0901)[16:]
 					instr_hi.next = instr_bin[16:8]
 					in_imm.next = 1
-					yield clock.posedge
-					yield delay(2)
+					yield clock.negedge
+					# delay(2)
+					instr_hi.next = 0x00
+					
+				instr_hi.next = 0x00
+				yield delay(5)
 
-					print(out_acc)
+				for addr in range(256):
+
+					instr_bin = intbv(((codes['LOAD'][0] << 8) | 0x01) | (addr & 0xff))[16:]
+					instr_hi.next = instr_bin[16:8]
+
+					in_dm_addr.next = addr
+					in_imm.next = 0
+					yield clock.posedge
+
+					yield clock.posedge
+					assert addr == out_acc
+					
 							
-				raise Exception
+				# raise Exception
 				raise StopSimulation
 
 			return instances()

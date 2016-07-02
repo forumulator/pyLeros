@@ -46,7 +46,7 @@ def pyleros_exec(clk, reset, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc,
     dm_wr_en = Signal(bool(0))
 
     pc_dly = Signal(intbv(0)[IM_BITS:])
-
+  
     dm_wr_addr_dly = Signal(intbv(0)[DM_BITS:])
 
     # Instantiate the ALU
@@ -60,6 +60,7 @@ def pyleros_exec(clk, reset, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc,
     def sync_sig():
 
         # if not reset:
+        # print(acc)
         back_acc.next = acc
         back_dm_data.next = dm_rd_data
         dm_rd_addr.next = pipe_dm_addr
@@ -81,6 +82,7 @@ def pyleros_exec(clk, reset, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc,
     @always_comb
     def mux_write_dm():
   
+        # print(acc)
         if pipe_dec[int(t_decSignal.store)]:
             dm_wr_en.next = True
         else:
@@ -127,13 +129,15 @@ def pyleros_exec(clk, reset, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc,
 
         # Write the accumulator based on the 
         # high and low enable write control signals
-        high, low = 0x00, 0x00
-        if pipe_dec[int(t_decSignal.al_ena)]:
-            low = 0xff
-        if pipe_dec[int(t_decSignal.ah_ena)]:
-            high = 0xff
+        # high, low = 0x00, 0x00
+        # if pipe_dec[int(t_decSignal.al_ena)]:
+        #     low = 0xff
+        # if pipe_dec[int(t_decSignal.ah_ena)]:
+        #     high = 0xff
 
-        mask = (high << 8) | low
+        # mask = (high << 8) | low
+        mask = 0xffff
+
 
         acc.next = pre_accu & mask
 

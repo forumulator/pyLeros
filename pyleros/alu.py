@@ -71,7 +71,8 @@ def pyleros_alu(dec, acc, opd, pre_acc, verbose=False):
 
             else:
                 # LOGICAL OPERATION
-                pre_acc.next = intbv(res_log)[16:]
+                if not (dec[int(t_decSignal.op)] ==  alu_op_type.NOP):
+                    pre_acc.next = intbv(res_log)[16:]
 
 
     return instances()

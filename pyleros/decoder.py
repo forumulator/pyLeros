@@ -39,7 +39,7 @@ def pyleros_decoder(instr_hi, out_sig, verbose=False):
         if verbose:
             print("Inside decoder with instruction_hi:", instr_hi)
         # Set the defaults of all signals
-        out_sig[int(t_decSignal.op)].next = alu_op_type.LD
+        out_sig[int(t_decSignal.op)].next = alu_op_type.NOP
         out_sig[int(t_decSignal.al_ena)].next = False
         out_sig[int(t_decSignal.ah_ena)].next = False
         out_sig[int(t_decSignal.log_add)].next = False
@@ -134,23 +134,24 @@ def pyleros_decoder(instr_hi, out_sig, verbose=False):
 
 
 
-        # Setting of the signal op as the 
-        # alu_op_type
-        if instr_hi[3:1] == 0b00:
-            # LOAD
-            out_sig[int(t_decSignal.op)].next = alu_op_type.LD
+        if ins_ckh == 0x20 or ins_ckh == 0x28:
+            # Setting of the signal op as the 
+            # alu_op_type
+            if instr_hi[3:1] == 0b00:
+                # LOAD
+                out_sig[int(t_decSignal.op)].next = alu_op_type.LD
 
-        elif instr_hi[3:1] == 0b01:
-            # AND
-            out_sig[int(t_decSignal.op)].next = alu_op_type.AND
+            elif instr_hi[3:1] == 0b01:
+                # AND
+                out_sig[int(t_decSignal.op)].next = alu_op_type.AND
 
-        elif instr_hi[3:1] == 0b10:
-            # OR
-            out_sig[int(t_decSignal.op)].next = alu_op_type.OR
+            elif instr_hi[3:1] == 0b10:
+                # or
+                out_sig[int(t_decSignal.op)].next = alu_op_type.OR
 
-        elif instr_hi[3:1] == 0b11:
-            # XOR
-            out_sig[int(t_decSignal.op)].next = alu_op_type.XOR
+            elif instr_hi[3:1] == 0b11:
+                # XOR
+                out_sig[int(t_decSignal.op)].next = alu_op_type.XOR
 
     return instances()
 

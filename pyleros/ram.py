@@ -1,4 +1,4 @@
-from myhdl import block, intbv, instances, always_seq
+from myhdl import block, intbv, instances, always_seq, Signal
 from pyleros.types import DM_BITS
 
 
@@ -24,7 +24,7 @@ def pyleros_dm(clk, reset, rd_addr, wr_addr, wr_data, wr_en, rd_data):
 
     """
     DM_SIZE = 2**DM_BITS
-    DM = [(intbv(65)[16:]) for _ in range(DM_SIZE)]
+    DM = [Signal(intbv(0)[16:]) for _ in range(DM_SIZE)]
 
     # convert list into tupple for automatic conversion
     # DM_array = tuple(DM)
@@ -32,15 +32,17 @@ def pyleros_dm(clk, reset, rd_addr, wr_addr, wr_data, wr_en, rd_data):
     @always_seq(clk.posedge, reset=reset)
     def DM_rw():
 
-        rd_data.next = DM[int(rd_addr)]
+        rd_data.next = DM[int(rd_addr)].val
 
         if wr_en:
             # Write enabled
             if wr_addr >= DM_SIZE:
                 raise ValueError("Write addr " + hex(wr_addr) + "out of bounds")
             else:   
-                print("At {addr} : {val}".format(addr=wr_addr, val=wr_data.val))
-                DM[int(wr_addr)] = intbv(wr_data.val)[16:]
+                if wr_addr == 255:
+                    for i in range(256):
+                        print("At {addr} : {val}".format(addr=(i), val=int(DM[i].val)))
+                DM[int(wr_addr)].next = intbv(wr_data.val)[16:]
 
     return instances()
 
