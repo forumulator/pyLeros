@@ -95,7 +95,7 @@ class TestClass:
 			def tbstim():
 				# local accumulator var
 				acc = 0
-				yield delay(11) # or yield clock.posedge, same result.
+				# yield delay(11) # or yield clock.posedge, same result.
 
 				for addr in range(len(instr_list)):
 
@@ -106,6 +106,7 @@ class TestClass:
 
 					in_imm.next = instr_bin & 0xff
 					yield clock.posedge
+					yield delay(1)
 
 					if instr == 'ADD':
 						assert ((acc + op) & 0xffff) == out_acc
@@ -157,6 +158,7 @@ class TestClass:
 					in_imm.next = instr_bin & 0xff
 					# these two together constitute clock.negedge
 					yield clock.posedge
+					yield delay(1)
 
 					if instr == 'OR':
 						assert ((acc | op) & 0xffff) == out_acc
@@ -218,12 +220,12 @@ class TestClass:
 
 					in_dm_addr.next = addr
 					in_imm.next = 0
-					yield clock.posedge
+					yield clock.negedge
 					# yield delay(2)
 					instr_bin = intbv(0x0901)[16:]
 					instr_hi.next = instr_bin[16:8]
 					in_imm.next = 1
-					yield clock.negedge
+					yield clock.posedge
 					# delay(2)
 					instr_hi.next = 0x00
 					
@@ -238,8 +240,8 @@ class TestClass:
 					in_dm_addr.next = addr
 					in_imm.next = 0
 					yield clock.posedge
-
-					yield clock.posedge
+					yield delay(1)
+					# yield clock.posedge
 					assert addr == out_acc
 					
 							

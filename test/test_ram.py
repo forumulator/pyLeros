@@ -49,7 +49,7 @@ def test_ram(args=None):
 			# yield delay(33)
 			
 			# for i in range(5):
-			#  yield clock.posedge
+			yield clock.posedge
 
 			# write all the data
 			for addr in range(DM_SIZE):
@@ -76,8 +76,7 @@ def test_ram(args=None):
 				addr = randrange(DM_SIZE)
 				rd_addr.next = addr
 
-				for i in range(2):
-					yield clock.posedge
+				yield clock.posedge
 
 				yield delay(1)
 
