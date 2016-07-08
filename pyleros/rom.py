@@ -40,7 +40,7 @@ def pyleros_im(clk, reset, rd_addr, rd_data, filename = None):
 
     @always_seq(clk.posedge, reset=reset)
     def IM_read():
-        print("Reading at:", rd_addr)
+        print("Reading at:", rd_addr, ", ", IM_array[rd_addr])
         rd_data.next = IM_array[int(rd_addr)]
 
     return instances()

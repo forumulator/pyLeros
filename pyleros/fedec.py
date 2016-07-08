@@ -49,6 +49,10 @@ def pyleros_fedec(clk, reset, acc, dm_data,
 
     branch_en, acc_z = False, True
 
+    # Since the init of PC causes the first addition
+    # automatically, the first Instr is read from
+    # 0x01, not 0x00 and thus the instr at 0x00 is never
+    # executed. make PC -1 to exec. 0x00.
     pc = Signal(intbv(0)[IM_BITS:]) 
     pc_next = Signal(intbv(0)[IM_BITS:])
     pc_add = intbv(0)[IM_BITS:]
@@ -66,7 +70,7 @@ def pyleros_fedec(clk, reset, acc, dm_data,
     def sync_sig():
 
         # if not reset == reset.active:
-        print("hi_bits:",instr[16:8])
+        # print("hi_bits:",instr[16:8])
         instr_hi.next = instr[16:8]
         im_addr.next = pc_next
         pipe_pc.next = pc_add  
@@ -143,7 +147,7 @@ def pyleros_fedec(clk, reset, acc, dm_data,
             pc_op[:] = 1
         print(pc, pc_op)
 
-        pc_add_tmp[:] = (pc + pc_op)
+        pc_add_tmp[:] = pc + pc_op
 
         # Add 1 or branch offset OR set the add
         # to the jump addr
