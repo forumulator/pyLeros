@@ -17,6 +17,13 @@ codes['XOR'] = [0x26, [t_decSignal.al_ena, t_decSignal.ah_ena, t_decSignal.op], 
 codes['LOADH'] = [0x28, [t_decSignal.loadh, t_decSignal.ah_ena, t_decSignal.op], False, alu_op_type.LD]
 codes['STORE'] = [0x30, [t_decSignal.store], False]
 
+# Branch
+codes['BRANCH'] = [0x48, [t_decSignal.br_op], False]
+codes['BRZ'] = [0x49, [t_decSignal.br_op], False]
+codes['BRNZ'] = [0x4a, [t_decSignal.br_op], False]
+codes['BRP'] = [0x4b, [t_decSignal.br_op], False]
+codes['BRN'] = [0x4c, [t_decSignal.br_op], False]
+
 # I/O
 # codes['IN'] = [0x3c, [t_decSignal.al_ena, t_decSignal.ah_ena, t_decSignal.inp], False]
 # codes['OUT'] = [0x3, [t_decSignal.al_ena, t_decSignal.ah_ena, t_decSignal.inp], False]

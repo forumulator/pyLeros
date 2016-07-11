@@ -56,11 +56,14 @@ def pyleros_decoder(instr_hi, out_sig, verbose=False):
 
 
         # Decode
-
-        # the imm. bit, 0
-        out_sig[int(t_decSignal.sel_imm)].next = instr_hi[0]
-
         ins_ckh = instr_hi & 0xf8
+
+        # if the instructions are not branch
+        if not (ins_ckh == 0x48):
+            # the imm. bit, 0
+            out_sig[int(t_decSignal.sel_imm)].next = instr_hi[0]
+
+        
 
         if ins_ckh == 0x00:
             # NOP

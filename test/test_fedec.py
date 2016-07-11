@@ -26,10 +26,11 @@ def test_fedec_imm():
 		reset = ResetSignal(0, active=1, async=True)
 
 		# FEDEC SIGNALS
-		in_acc, in_dm_data = [Signal(intbv(0)[16:])] * 2
-		out_imme = Signal(intbv(0)[16:])
-		out_dm_addr = Signal(intbv(0)[DM_BITS:])
-		out_pc = Signal(intbv(0)[IM_BITS:])
+		back_acc, back_dm_data = [Signal(intbv(0)[16:])] * 2
+		pipe_imme = Signal(intbv(0)[16:])
+		pipe_dm_addr = Signal(intbv(0)[DM_BITS:])
+		pipe_pc = Signal(intbv(0)[IM_BITS:])
+		fwd_accu = Signal(intbv(0)[16:])
 
 		d, e = {}, {}
 		for i in dlist:
@@ -44,6 +45,7 @@ def test_fedec_imm():
 	
 		instr_hi = Signal(intbv(0)[8:])
 		dec_inst = decoder.pyleros_decoder(instr_hi, test_dec)
+
 
 		# ALU SIGNALS
 		# out_list
@@ -81,8 +83,8 @@ def test_fedec_imm():
 				bin_list.append(bin_code)
 
 
-		fedec_inst = fedec.pyleros_fedec(clock, reset, in_acc, in_dm_data, \
-										out_dec, out_imme, out_dm_addr, out_pc, filename=bin_list)
+		fedec_inst = fedec.pyleros_fedec(clock, reset, back_acc, back_dm_data, fwd_accu, \
+										out_dec, pipe_imme, pipe_dm_addr, pipe_pc, filename=bin_list)
 
 
 		@always(delay(100))
@@ -127,12 +129,12 @@ def test_fedec_imm():
 					print(str(sig))
 					assert test_dec[int(sig)] == out_dec[int(sig)]
 
-				print("Cmp Imm", op2, out_imme)
+				print("Cmp Imm", op2, pipe_imme)
 				alu_acc.next = op1
-				alu_opd.next = out_imme
+				alu_opd.next = pipe_imme
 				yield delay(20)
-				print("alu ops", op1, alu_acc, out_imme, alu_opd)
-				print("alu types", type(op1), type(alu_acc), type(out_imme), type(alu_opd))
+				print("alu ops", op1, alu_acc, pipe_imme, alu_opd)
+				print("alu types", type(op1), type(alu_acc), type(pipe_imme), type(alu_opd))
 				print(out_dec[int(t_decSignal.add_sub)], out_dec[int(t_decSignal.log_add)])
 				for i in range(2):
 					yield delay(33)

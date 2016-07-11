@@ -9,7 +9,7 @@ from pyleros import decoder, rom
 
 
 @block
-def pyleros_fedec(clk, reset, acc, dm_data,
+def pyleros_fedec(clk, reset, back_acc, dm_data, fwd_accu, 
                 pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc, filename=None):
     """The fedec module for pyleros, that is, the fetch
     and decode pipeline stage. The modules is purely 
@@ -25,7 +25,7 @@ def pyleros_fedec(clk, reset, acc, dm_data,
     Arguments (ports):
         clk: IN Clock signal
         reset: IN Async reset signal
-        acc: IN Acc value accessed here, not written. This is
+        back_acc: IN Acc value accessed here, not written. This is
             needed for setting the branch control signals and
             for memory addredd of JAL
         dm_data: IN The data read from the DM, which is needed for
@@ -47,7 +47,8 @@ def pyleros_fedec(clk, reset, acc, dm_data,
     instr = Signal(intbv(0)[16:])
     instr_hi = Signal(intbv(0)[8:])
 
-    branch_en, acc_z = False, True
+    branch_en = Signal(bool(0))
+    acc_z = True
 
     # Since the init of PC causes the first addition
     # automatically, the first Instr is read from
@@ -93,40 +94,65 @@ def pyleros_fedec(clk, reset, acc, dm_data,
         # else:
         pipe_dm_addr.next = instr[DM_BITS:]
 
+
+    # Branch To avoid data hazard, that is, calculation of the branch address
+    # before the new value of the accumulator from the prev. op is available, 
+    # we could shift the calculation of the branch address from the fedec to the
+    # execute stage, similar to the MIPs processor. 
+    # This decision potentially introduces a branch hazard
+    # which can be avoided by invaidating the instruction
+    # fetch in case the branch is taken. The data hazard can 
+    # be \avoided(?) by forwarding the result of the calculation
+    # ADD/STORE/LOAD to the fetch stage, before it is written
+    # to the accumulator. This problem does not occur with
+    # MIPs becuase the branching decision is made in 
+
     @always_comb
     def branch_sel():
 
         # if not reset == reset.active:
-        if acc == 0:
+        if fwd_accu == 0:
             acc_z = True
 
         else:
             acc_z = False
 
-        branch_en = 0
+        branch_en.next = 0
 
         if decode[int(t_decSignal.br_op)]:
             br_type = instr[11:8]
 
             if br_type == 0b000:
                 # BRANCH
-                branch_en == 1
+                branch_en.next = True
 
             elif br_type == 0b001:
                 # BRZ
-                branch_en = True if acc_z else False
+                if acc_z:
+                    branch_en.next = True
+                else:
+                    branch_en.next = False
 
             elif br_type == 0b010:
                 # BRNZ
-                branch_en = True if not acc_z else False
+                if not acc_z:
+                    branch_en.next = True
+                else:
+                    branch_en.next = False
 
             elif br_type == 0b011:
                 # BRP
-                branch_en = True if not acc[15] else False
+                if not fwd_accu[15]:
+                    branch_en.next = True
+                else:
+                    branch_en.next = False
 
             elif br_type == 0b100:
                 # BRN
-                branch_en = True if acc[15] else False
+                if fwd_accu[15]:
+                    branch_en.next = True
+                else:
+                    branch_en.next = False
 
     # For selection of next PC address
     @always_comb
@@ -135,13 +161,12 @@ def pyleros_fedec(clk, reset, acc, dm_data,
         pc_add_tmp = intbv(0)[IM_BITS:]
         pc_op = intbv(0)[IM_BITS:]
         # if not reset == reset.active:
-        print("start", pc, pc_op, instr, acc, pc_add_tmp, instr)
+        print("start", pc, pc_op, instr, back_acc, pc_add_tmp, instr)
 
         if branch_en:
             # Sign extend the low 8 bits
             # of instruction
-            temp = instr
-            pc_op[:] = sign_extend(temp, IM_BITS)
+            pc_op[:] = sign_extend(instr[8:], IM_BITS)
 
         else:
             pc_op[:] = 1
@@ -152,12 +177,12 @@ def pyleros_fedec(clk, reset, acc, dm_data,
         # Add 1 or branch offset OR set the add
         # to the jump addr
         if decode[int(t_decSignal.jal)]: 
-            pc_next.next = acc[IM_BITS:]
+            pc_next.next = back_acc[IM_BITS:]
 
         else:
             pc_next.next = pc_add_tmp
             pc_add = pc_add_tmp
-        print("end", pc, pc_op, instr, acc, pc_add_tmp, instr)
+        print("end", pc, pc_op, instr, back_acc, pc_add_tmp, instr)
     
     # Set the values on positive clock edge,
     # the only seq. part of the module

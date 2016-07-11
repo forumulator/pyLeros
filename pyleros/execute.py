@@ -8,7 +8,7 @@ from pyleros import alu, ram
 
 @block
 def pyleros_exec(clk, reset, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc,
-                 back_acc, back_dm_data):
+                 back_acc, back_dm_data, fwd_accu):
     """The execute module for pyleros. The modules is purely 
     combinatorial, except for the updating the pipeline 
     register. The DM is instantied and only accessed
@@ -79,6 +79,7 @@ def pyleros_exec(clk, reset, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc,
             opd.next = dm_rd_data
 
 
+
     @always_comb
     def mux_write_dm():
   
@@ -131,8 +132,15 @@ def pyleros_exec(clk, reset, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc,
         # high and low enable write control signals
         if pipe_dec[int(t_decSignal.al_ena)] and pipe_dec[int(t_decSignal.ah_ena)]:
             acc.next = pre_accu
-            
+
         # acc.next = pre_accu & mask
+
+    @always_comb
+    def fwd_acc_set():
+
+        if pipe_dec[int(t_decSignal.al_ena)] and pipe_dec[int(t_decSignal.ah_ena)]:
+            fwd_accu.next = pre_accu
+
 
        
     return instances()
