@@ -174,7 +174,7 @@ class TestClass:
                     op = 1
                     instr_bin = ((codes[instr][0] | flg) << 8) | intbv(op)[8:]
                     instr_list.append((instr, op, instr_bin))
-                    flg = 0
+                    #flg = 0
 
                 for i in range(100):
                     instr = 'LOAD'  
@@ -277,14 +277,16 @@ class TestClass:
                 ('SUB', 5, True),
                 ('XOR', 13, True),
                 ('STORE', 50, False),
+                ('ADD', 15, True),
+                ('STORE', 51, False),
                 ('XOR', 48, True),
-                ('BRNZ', 21, False),
+                ('BRNZ', 19, False),
                 ]
                 
-                for i in range(7, 27):
+                for i in range(9, 27):
                     i_list.append(('NOP', 0, False))
-
-                i_list.append(('LOAD', 50, False))
+                i_list.append(('LOAD', 51, False))
+                i_list.append(('LOADX', 27, False))
                 i_list.append(('XOR', 45, True))
 
                 for i in i_list:
@@ -322,7 +324,7 @@ class TestClass:
                 yield clock.posedge
                 yield delay(1)
                 addr = 0
-                for addr in range(10):
+                for addr in range(15):
 
                     yield clock.posedge
 

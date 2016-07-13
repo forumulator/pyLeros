@@ -130,14 +130,14 @@ def pyleros_decoder(instr_hi, out_sig, verbose=False):
             out_sig[int(t_decSignal.ah_ena)].next = True
             out_sig[int(t_decSignal.indls)].next = True
 
-        elif ins_ckh == 0x61:
+        elif ins_ckh == 0x70:
             # STORE INDIRECT
             out_sig[int(t_decSignal.indls)].next = True
             out_sig[int(t_decSignal.store)].next = True
 
 
 
-        if ins_ckh == 0x20 or ins_ckh == 0x28:
+        if ins_ckh == 0x20 or ins_ckh == 0x28 or ins_ckh == 0x60:
             # Setting of the signal op as the 
             # alu_op_type
             if instr_hi[3:1] == 0b00:

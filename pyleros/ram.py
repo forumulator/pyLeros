@@ -31,7 +31,7 @@ def pyleros_dm(clk, reset, rd_addr, wr_addr, wr_data, wr_en, rd_data):
 
     @always_seq(clk.negedge, reset=reset)
     def DM_rw():
-
+        print("Reading DM at " +  str(int(rd_addr)) + " " + str(int(DM[int(rd_addr)].val)))
         rd_data.next = DM[int(rd_addr)].val
 
         if wr_en:

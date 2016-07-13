@@ -131,6 +131,7 @@ def pyleros_exec(clk, reset, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc,
         # Write the accumulator based on the 
         # high and low enable write control signals
         if pipe_dec[int(t_decSignal.al_ena)] and pipe_dec[int(t_decSignal.ah_ena)]:
+            print("Next value of the accumulator " + str(int(acc.next)))
             acc.next = pre_accu
 
         # acc.next = pre_accu & mask

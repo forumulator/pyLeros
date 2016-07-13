@@ -30,7 +30,9 @@ codes['BRN'] = [0x4c, [t_decSignal.br_op], False]
 
 # LOADADDR
 
-# LOAD INDIRECT
+# LOAD/STORE INDIRECT
+codes['LOADX'] = [0x60, [t_decSignal.indls, t_decSignal.ah_ena, t_decSignal.al_ena], False]
+codes['STOREX'] = [0x70, [t_decSignal.indls, t_decSignal.store], False]
 
 dlist = [t_decSignal.op, t_decSignal.al_ena, t_decSignal.ah_ena, t_decSignal.log_add, \
         t_decSignal.add_sub, t_decSignal.shr, t_decSignal.sel_imm, t_decSignal.store, \

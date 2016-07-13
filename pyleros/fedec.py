@@ -9,7 +9,7 @@ from pyleros import decoder, rom
 
 
 @block
-def pyleros_fedec(clk, reset, back_acc, dm_data, fwd_accu, 
+def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu, 
                 pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc, filename=None):
     """The fedec module for pyleros, that is, the fetch
     and decode pipeline stage. The modules is purely 
@@ -28,8 +28,10 @@ def pyleros_fedec(clk, reset, back_acc, dm_data, fwd_accu,
         back_acc: IN Acc value accessed here, not written. This is
             needed for setting the branch control signals and
             for memory addredd of JAL
-        dm_data: IN The data read from the DM, which is needed for
+        back_dm_data: IN The data read from the DM, which is needed for
             an direct add or and indirect load/ store(which follows)
+        fwd_accu: IN The value of the accumulator, forwarded from the 
+                execute stage to provide proper branching.
         pipe_dec: OUT List of the decode signals, pass on to the execute stage
         pipe_imme: OUT Immediate value, as taken from the lower bits 
                 of the instruction, pass on to execute stage
@@ -78,21 +80,25 @@ def pyleros_fedec(clk, reset, back_acc, dm_data, fwd_accu,
 
 
     @always_comb
-    def dm_addr_sel():
+    def mux_dm_addr():
 
         # if not reset == reset.active:
         # Note ind ls adds the 8 bit immediate offset
         # to the previous value of the dm_
-        # offset_addr = intbv(dm_data + instr[8:0])[16:]
         
-        # Indirect Addressing(with offset) 
-        # for indirect load/store
-        # if decode[int(t_decSignal.indls)]:
-        #     pipe_dm_addr.next = offset_addr[DM_BITS:] 
+        offset_addr = intbv(back_dm_data + instr[8:0])[DM_BITS:]
+        
+        
+        if decode[int(t_decSignal.indls)]:
+            # Indirect Addressing(with offset) 
+            # for indirect load/store
+            print("offset address: " + str(int(offset_addr)))
+            pipe_dm_addr.next = offset_addr[DM_BITS:] 
 
-        # Direct Addressing
-        # else:
-        pipe_dm_addr.next = instr[DM_BITS:]
+        else:
+            # Direct Addressing
+            print("direct address: " + str(int(instr[DM_BITS:])))
+            pipe_dm_addr.next = instr[DM_BITS:]
 
 
     # Branch To avoid data hazard, that is, calculation of the branch address
@@ -184,8 +190,6 @@ def pyleros_fedec(clk, reset, back_acc, dm_data, fwd_accu,
             pc_add = pc_add_tmp
         print("end", pc, pc_op, instr, back_acc, pc_add_tmp, instr)
     
-    # Set the values on positive clock edge,
-    # the only seq. part of the module
     @always_comb
     def intr_pipe():
 
