@@ -10,7 +10,7 @@ from pyleros import decoder, rom
 
 @block
 def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu, 
-                pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc, filename=None):
+                pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc, filename=None, debug=False):
     """The fedec module for pyleros, that is, the fetch
     and decode pipeline stage. The modules is purely 
     combinatorial, except for the updating the pipeline 
@@ -41,6 +41,7 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu,
     Parameters:
 
         filename: Name of the file or a list containing the instructions
+        debug: Debugging mode, the processor prints various error messages
 
     """
 
@@ -65,16 +66,17 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu,
     decode[int(t_decSignal.op)] = Signal(alu_op_type.LD)
 
     # Instantiate the instruction memory
-    im_inst = rom.pyleros_im(clk, reset, im_addr, instr, filename=filename)
+    im_inst = rom.pyleros_im(clk, reset, im_addr, instr, filename, debug)
 
     # Instantiate the decoder
-    dec_inst = decoder.pyleros_decoder(instr_hi, decode, True)
+    dec_inst = decoder.pyleros_decoder(instr_hi, decode, debug)
 
     @always_comb
     def sync_sig():
 
-        # if not reset == reset.active:
-        # print("hi_bits:",instr[16:8])
+        if debug:
+            print("hi_bits:",instr[16:8])
+
         instr_hi.next = instr[16:8]
         im_addr.next = pc_next
         pipe_pc.next = pc_add  
@@ -83,19 +85,19 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu,
     @always_comb
     def mux_dm_addr():
 
-        # if not reset == reset.active:
-        
         offset_addr = intbv(back_dm_data + instr[8:0])[DM_BITS:]        
         
         if decode[int(t_decSignal.indls)]:
             # Indirect Addressing(with offset) 
             # for indirect load/store
-            print("offset address: " + str(int(offset_addr)))
+            if debug:
+                print("offset address: " + str(int(offset_addr)))
             pipe_dm_addr.next = offset_addr[DM_BITS:] 
 
         else:
             # Direct Addressing
-            print("direct address: " + str(int(instr[DM_BITS:])))
+            if debug:
+                print("direct address: " + str(int(instr[DM_BITS:])))
             pipe_dm_addr.next = instr[DM_BITS:]
 
 
@@ -158,12 +160,15 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu,
                 else:
                     branch_en.next = False
 
+    def print_func(pr_str):
+        print(pr_str, pc, pc_op, instr, back_acc, pc_add, instr)
+
     # For selection of next PC address
     @always_comb
     def pc_addr():
 
-        # if not reset == reset.active:
-        # print("start", pc, pc_op, instr, back_acc, pc_add, instr)
+        if debug:
+            print_func('start')
 
         if branch_en:
             # Sign extend the low 8 bits
@@ -172,7 +177,12 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu,
 
         else:
             pc_op.next = 1
-        # print(pc, pc_op)
+
+        if debug:
+            print_func1()
+        
+    def print_func1():
+        print(pc, pc_op)
 
 
     @always_comb
@@ -189,18 +199,18 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu,
 
         else:
             pc_next.next = pc_add
-        print("end", pc, pc_op, instr, back_acc, pc_add, instr)
+        if debug:
+            print_func('end')
     
     @always_comb
     def intr_pipe():
 
         # if decode[int(t_decSignal.add_sub)] == True:
         # Set the immediate value
-        # if decode[int(t_decSignal.loadh)]:
-        #     pipe_imme.next = instr[8:] << 8
-
-        # else:
-        pipe_imme.next = instr[8:]
+        if decode[int(t_decSignal.loadh)]:
+            pipe_imme.next = instr[8:] << 8
+        else:
+            pipe_imme.next = instr[8:]
 
         # else:
         #   immr(7 downto 0) <= imout.data(7 downto 0);

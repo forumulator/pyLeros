@@ -4,7 +4,7 @@ import sys
 
 
 @block
-def pyleros_im(clk, reset, rd_addr, rd_data, filename = None):
+def pyleros_im(clk, reset, rd_addr, rd_data, filename=None, debug=False):
     """Definition of the instruction memory, or the ROM for
     pyleros. Reading is synchronous with the rising edge of the
     clock. Writing is not enabled.
@@ -17,30 +17,22 @@ def pyleros_im(clk, reset, rd_addr, rd_data, filename = None):
 
     Parameters:
         filename: Name of the file or a list containing the instructions
-
+        debug: Debugging mode, the processor prints various error messages
+        
     """
     IM_SIZE = 2**IM_BITS
     IM = [(intbv(0)[16:]) for _ in range(IM_SIZE)]
-
-    # print("\n\n")
-    # print("defined mem")
-    # for i in range(10):
-    #   print(IM[i])
 
     # Fill up the memory registers
     define_rom(IM, IM_SIZE, filename)
 
     # convert list into tupple for automatic conversion
     IM_array = tuple(IM)
-    
-
-    # print("\nFinal mem\n")
-    # for i in range(10):
-    #   print(int(IM_array[i]))
 
     @always_seq(clk.posedge, reset=reset)
     def IM_read():
-        print("\nReading at:", rd_addr, ", ", IM_array[rd_addr])
+        if debug:
+            print("\nReading at:", rd_addr, ", ", IM_array[rd_addr])
         rd_data.next = IM_array[int(rd_addr)]
 
     return instances()

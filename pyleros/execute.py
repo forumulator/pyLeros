@@ -8,7 +8,7 @@ from pyleros import alu, ram
 
 @block
 def pyleros_exec(clk, reset, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc,
-                 back_acc, back_dm_data, fwd_accu):
+                 back_acc, back_dm_data, fwd_accu, debug=False):
     """The execute module for pyleros. The modules is purely 
     combinatorial, except for the updating the pipeline 
     register. The DM is instantied and only accessed
@@ -29,8 +29,8 @@ def pyleros_exec(clk, reset, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc,
             indls
 
     Parameters:
-        None
-
+        debug: Debugging mode, the processor prints various error messages
+        
     """
 
     # Define the Accumulator
@@ -50,10 +50,10 @@ def pyleros_exec(clk, reset, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc,
     dm_wr_addr_dly = Signal(intbv(0)[DM_BITS:])
 
     # Instantiate the ALU
-    alu_inst = alu.pyleros_alu(pipe_dec, acc, opd, pre_accu)
+    alu_inst = alu.pyleros_alu(pipe_dec, acc, opd, pre_accu, debug)
 
     # Instantiate the DM
-    dm_inst = ram.pyleros_dm(clk, reset, dm_rd_addr, dm_wr_addr, dm_wr_data, dm_wr_en, dm_rd_data)
+    dm_inst = ram.pyleros_dm(clk, reset, dm_rd_addr, dm_wr_addr, dm_wr_data, dm_wr_en, dm_rd_data, debug)
 
 
     @always_comb
@@ -107,29 +107,18 @@ def pyleros_exec(clk, reset, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc,
     @always_comb
     def comb_set_sig():
 
-        # should wr_add have a delay, so that
-        # add $r4 like instructions which require a memory read
-        # when followed by a store $r6 can be properly
-        # executed? 
-        # delay not reqired if acc is written on falling clock edge.
-        # dm_wr_addr_dly.next = pipe_dm_addr
-
         # delay PC, needed to link in JAL
         pc_dly.next = pipe_pc
 
 
-    # Writing the value of accumulator 
-    # on the falling clock edge, so that 
-    # instructions like ADD $r4 can be completed in 
-    # sim in one clock cycle. Is this needed in 
-    # h/w? prob. not.
     @always_seq(clk.posedge, reset=reset)
     def seq_set_sig():
 
         # Write the accumulator based on the 
         # high and low enable write control signals
         if pipe_dec[int(t_decSignal.al_ena)] and pipe_dec[int(t_decSignal.ah_ena)]:
-            print("Next value of the accumulator " + str(int(acc.next)))
+            if debug:
+                print("Next value of the accumulator " + str(int(acc.next)))
             acc.next = pre_accu
 
     @always_comb

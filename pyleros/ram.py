@@ -3,7 +3,7 @@ from pyleros.types import DM_BITS
 
 
 @block
-def pyleros_dm(clk, reset, rd_addr, wr_addr, wr_data, wr_en, rd_data):
+def pyleros_dm(clk, reset, rd_addr, wr_addr, wr_data, wr_en, rd_data, debug=False):
     """Definition of the data memory for pyleros. 
     Reading is synchronous with the rising edge of the
     clock. Writing is also done on the clock rising edge if 
@@ -20,18 +20,19 @@ def pyleros_dm(clk, reset, rd_addr, wr_addr, wr_data, wr_en, rd_data):
         
 
     Parameters:
-        None 
-
+        debug: Debugging mode, the processor prints various error messages
+        
     """
     DM_SIZE = 2**DM_BITS
     DM = [Signal(intbv(0)[16:]) for _ in range(DM_SIZE)]
 
     # convert list into tupple for automatic conversion
-    # DM_array = tuple(DM)
+    DM_array = tuple(DM)
 
     @always_seq(clk.negedge, reset=reset)
     def DM_rw():
-        print("Reading DM at " +  str(int(rd_addr)) + " " + str(int(DM[int(rd_addr)].val)))
+        if debug:
+            print("Reading DM at " +  str(int(rd_addr)) + " " + str(int(DM[int(rd_addr)].val)))
         rd_data.next = DM[int(rd_addr)].val
 
         if wr_en:
