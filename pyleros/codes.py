@@ -1,6 +1,11 @@
 from pyleros.types import t_decSignal, alu_op_type
 
 # dictionary of all the codes
+# codes['X'][0] is the opcode, codes['X'][1] is the list of signals
+# which is set to active by twhen 'X' is decoded.
+# codes['X'][2] is weather the instruction also has an immediate
+# corres. instruction. codes['X'][3], if it exists, is the 
+# value of alu_op_type, when 'X' is decoded.
 codes = {}
 codes['NOP'] = [0x00, [], False]
 codes['ADD'] = [0x08, [t_decSignal.al_ena, t_decSignal.ah_ena, t_decSignal.log_add], True]
@@ -33,6 +38,9 @@ codes['BRN'] = [0x4c, [t_decSignal.br_op], False]
 # LOAD/STORE INDIRECT
 codes['LOADX'] = [0x60, [t_decSignal.indls, t_decSignal.ah_ena, t_decSignal.al_ena], False]
 codes['STOREX'] = [0x70, [t_decSignal.indls, t_decSignal.store], False]
+
+# Jump and link
+codes['JAL'] = [0x40, [t_decSignal.jal, t_decSignal.store], False]
 
 dlist = [t_decSignal.op, t_decSignal.al_ena, t_decSignal.ah_ena, t_decSignal.log_add, \
         t_decSignal.add_sub, t_decSignal.shr, t_decSignal.sel_imm, t_decSignal.store, \

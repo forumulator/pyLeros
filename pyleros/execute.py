@@ -90,24 +90,22 @@ def pyleros_exec(clk, reset, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc,
             dm_wr_en.next = False
 
         dm_wr_addr.next = pipe_dm_addr
+
         # MUX for selecting the data to be written
         # in case of jal
-        # if pipe_dec[int(t_decSignal.jal)]:
-        #     temp = intbv(0)[16:]
-        #     temp[IM_BITS:0] = pc_dly
-        #     temp[16:IM_BITS] = 0
+        if pipe_dec[int(t_decSignal.jal)]:
+            temp = intbv(0)[16:]
+            temp[IM_BITS:0] = pc_dly
+            temp[16:IM_BITS] = 0
 
-        #     dm_wr_data.next = temp
+            dm_wr_data.next = temp
 
-        # else:
-            # acc and DM will never need to be modified in the same
-            # clock cycle ever(coz DM is only written in store)
-            # Thus both assignments can be seq.
-        dm_wr_data.next = acc
+        else:
+            dm_wr_data.next = acc
    
 
-    # @always_comb
-    # def comb_set_sig():
+    @always_comb
+    def comb_set_sig():
 
         # should wr_add have a delay, so that
         # add $r4 like instructions which require a memory read
@@ -117,7 +115,7 @@ def pyleros_exec(clk, reset, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc,
         # dm_wr_addr_dly.next = pipe_dm_addr
 
         # delay PC, needed to link in JAL
-        # pc_dly.next = pipe_pc
+        pc_dly.next = pipe_pc
 
 
     # Writing the value of accumulator 
@@ -133,8 +131,6 @@ def pyleros_exec(clk, reset, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc,
         if pipe_dec[int(t_decSignal.al_ena)] and pipe_dec[int(t_decSignal.ah_ena)]:
             print("Next value of the accumulator " + str(int(acc.next)))
             acc.next = pre_accu
-
-        # acc.next = pre_accu & mask
 
     @always_comb
     def fwd_acc_set():

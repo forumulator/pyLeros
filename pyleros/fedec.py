@@ -58,7 +58,8 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu,
     # executed. make PC -1 to exec. 0x00.
     pc = Signal(intbv(0)[IM_BITS:]) 
     pc_next = Signal(intbv(0)[IM_BITS:])
-    pc_add = intbv(0)[IM_BITS:]
+    pc_add = Signal(intbv(0)[IM_BITS:])
+    pc_op = Signal(intbv(0)[16:])
 
     decode = [Signal(bool(0)) for i in dlist]
     decode[int(t_decSignal.op)] = Signal(alu_op_type.LD)
@@ -83,11 +84,8 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu,
     def mux_dm_addr():
 
         # if not reset == reset.active:
-        # Note ind ls adds the 8 bit immediate offset
-        # to the previous value of the dm_
         
-        offset_addr = intbv(back_dm_data + instr[8:0])[DM_BITS:]
-        
+        offset_addr = intbv(back_dm_data + instr[8:0])[DM_BITS:]        
         
         if decode[int(t_decSignal.indls)]:
             # Indirect Addressing(with offset) 
@@ -162,33 +160,36 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu,
 
     # For selection of next PC address
     @always_comb
-    def pc_mux():
+    def pc_addr():
 
-        pc_add_tmp = intbv(0)[IM_BITS:]
-        pc_op = intbv(0)[IM_BITS:]
         # if not reset == reset.active:
-        print("start", pc, pc_op, instr, back_acc, pc_add_tmp, instr)
+        # print("start", pc, pc_op, instr, back_acc, pc_add, instr)
 
         if branch_en:
             # Sign extend the low 8 bits
             # of instruction
-            pc_op[:] = sign_extend(instr[8:], IM_BITS)
+            pc_op.next = sign_extend(instr[8:], IM_BITS)
 
         else:
-            pc_op[:] = 1
-        print(pc, pc_op)
+            pc_op.next = 1
+        # print(pc, pc_op)
 
-        pc_add_tmp[:] = pc + pc_op
 
+    @always_comb
+    def pc_next_set():
+        pc_add.next = pc + pc_op
+
+
+    @always_comb
+    def pc_mux():
         # Add 1 or branch offset OR set the add
         # to the jump addr
         if decode[int(t_decSignal.jal)]: 
             pc_next.next = back_acc[IM_BITS:]
 
         else:
-            pc_next.next = pc_add_tmp
-            pc_add = pc_add_tmp
-        print("end", pc, pc_op, instr, back_acc, pc_add_tmp, instr)
+            pc_next.next = pc_add
+        print("end", pc, pc_op, instr, back_acc, pc_add, instr)
     
     @always_comb
     def intr_pipe():

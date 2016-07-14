@@ -280,10 +280,11 @@ class TestClass:
                 ('ADD', 15, True),
                 ('STORE', 51, False),
                 ('XOR', 48, True),
-                ('BRNZ', 19, False),
+                ('LOAD', 27, True),
+                ('JAL', 1, False),
                 ]
                 
-                for i in range(9, 27):
+                for i in range(10, 27):
                     i_list.append(('NOP', 0, False))
                 i_list.append(('LOAD', 51, False))
                 i_list.append(('LOADX', 27, False))

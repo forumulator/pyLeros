@@ -58,7 +58,7 @@ def test_alu():
         if imen:
             for instr in codes:
 
-                for trie in range(30):
+                for trie in range(20):
 
                     op1 = randrange(2**15)
                     op2 = randrange(2**15)
