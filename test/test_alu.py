@@ -1,5 +1,5 @@
 from pyleros import alu, decoder, rom
-from pyleros.types import IM_BITS, DM_BITS, alu_op_type, t_decSignal
+from pyleros.types import IM_BITS, DM_BITS, alu_op_type, dec_op_type
 from pyleros.codes import codes, dlist, conv_bin
 
 import pytest
@@ -148,11 +148,11 @@ def test_alu():
                         # Set the decoder input
                         instr_op = codes[instr][0]
                         instr_hi.next = instr_op
-                        # o_list[int(t_decSignal.add_sub)].next = False
-                        # o_list[int(t_decSignal.log_add)].next = True
+                        # o_list[int(dec_op_type.add_sub)].next = False
+                        # o_list[int(dec_op_type.log_add)].next = True
                         # yield delay(20)
 
-                        # print(o_list[int(t_decSignal.add_sub)], o_list[int(t_decSignal.log_add)])
+                        # print(o_list[int(dec_op_type.add_sub)], o_list[int(dec_op_type.log_add)])
 
                         # Set the ALU inputs
                         alu_acc.next = op1

@@ -2,7 +2,7 @@ import myhdl
 from myhdl import instances, block, Signal, intbv, \
                     always_comb, always_seq
 
-from pyleros.types import alu_op_type, t_decSignal, IM_BITS, DM_BITS
+from pyleros.types import alu_op_type, dec_op_type, IM_BITS, DM_BITS
 from pyleros.codes import dlist
 
 from pyleros import decoder, rom
@@ -63,7 +63,7 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu,
     pc_op = Signal(intbv(0)[16:])
 
     decode = [Signal(bool(0)) for i in dlist]
-    decode[int(t_decSignal.op)] = Signal(alu_op_type.LD)
+    decode[int(dec_op_type.op)] = Signal(alu_op_type.LD)
 
     # Instantiate the instruction memory
     im_inst = rom.pyleros_im(clk, reset, im_addr, instr, filename, debug)
@@ -87,7 +87,7 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu,
 
         offset_addr = intbv(back_dm_data + instr[8:0])[DM_BITS:]        
         
-        if decode[int(t_decSignal.indls)]:
+        if decode[int(dec_op_type.indls)]:
             # Indirect Addressing(with offset) 
             # for indirect load/store
             if debug:
@@ -125,7 +125,7 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu,
 
         branch_en.next = 0
 
-        if decode[int(t_decSignal.br_op)]:
+        if decode[int(dec_op_type.br_op)]:
             br_type = instr[11:8]
 
             if br_type == 0b000:
@@ -194,7 +194,7 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu,
     def pc_mux():
         # Add 1 or branch offset OR set the add
         # to the jump addr
-        if decode[int(t_decSignal.jal)]: 
+        if decode[int(dec_op_type.jal)]: 
             pc_next.next = back_acc[IM_BITS:]
 
         else:
@@ -205,9 +205,9 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu,
     @always_comb
     def intr_pipe():
 
-        # if decode[int(t_decSignal.add_sub)] == True:
+        # if decode[int(dec_op_type.add_sub)] == True:
         # Set the immediate value
-        if decode[int(t_decSignal.loadh)]:
+        if decode[int(dec_op_type.loadh)]:
             pipe_imme.next = instr[8:] << 8
         else:
             pipe_imme.next = instr[8:]

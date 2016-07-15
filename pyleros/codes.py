@@ -1,4 +1,4 @@
-from pyleros.types import t_decSignal, alu_op_type
+from pyleros.types import dec_op_type, alu_op_type
 
 # dictionary of all the codes
 # codes['X'][0] is the opcode, codes['X'][1] is the list of signals
@@ -8,44 +8,44 @@ from pyleros.types import t_decSignal, alu_op_type
 # value of alu_op_type, when 'X' is decoded.
 codes = {}
 codes['NOP'] = [0x00, [], False]
-codes['ADD'] = [0x08, [t_decSignal.al_ena, t_decSignal.ah_ena, t_decSignal.log_add], True]
-codes['SUB'] = [0x0c, [t_decSignal.al_ena, t_decSignal.ah_ena, t_decSignal.log_add, t_decSignal.add_sub], True]
-codes['SHR'] = [0x10, [t_decSignal.al_ena, t_decSignal.ah_ena, t_decSignal.shr], False]
+codes['ADD'] = [0x08, [dec_op_type.al_ena, dec_op_type.ah_ena, dec_op_type.log_add], True]
+codes['SUB'] = [0x0c, [dec_op_type.al_ena, dec_op_type.ah_ena, dec_op_type.log_add, dec_op_type.add_sub], True]
+codes['SHR'] = [0x10, [dec_op_type.al_ena, dec_op_type.ah_ena, dec_op_type.shr], False]
 
 # ALU operations
-codes['LOAD'] = [0x20, [t_decSignal.al_ena, t_decSignal.ah_ena, t_decSignal.op], True, alu_op_type.LD]
-codes['AND'] = [0x22, [t_decSignal.al_ena, t_decSignal.ah_ena, t_decSignal.op], True, alu_op_type.AND]
-codes['OR'] = [0x24, [t_decSignal.al_ena, t_decSignal.ah_ena, t_decSignal.op], True, alu_op_type.OR]
-codes['XOR'] = [0x26, [t_decSignal.al_ena, t_decSignal.ah_ena, t_decSignal.op], True, alu_op_type.XOR]
+codes['LOAD'] = [0x20, [dec_op_type.al_ena, dec_op_type.ah_ena, dec_op_type.op], True, alu_op_type.LD]
+codes['AND'] = [0x22, [dec_op_type.al_ena, dec_op_type.ah_ena, dec_op_type.op], True, alu_op_type.AND]
+codes['OR'] = [0x24, [dec_op_type.al_ena, dec_op_type.ah_ena, dec_op_type.op], True, alu_op_type.OR]
+codes['XOR'] = [0x26, [dec_op_type.al_ena, dec_op_type.ah_ena, dec_op_type.op], True, alu_op_type.XOR]
 
 # Load high
-codes['LOADH'] = [0x28, [t_decSignal.loadh, t_decSignal.ah_ena, t_decSignal.op], False, alu_op_type.LD]
-codes['STORE'] = [0x30, [t_decSignal.store], False]
+codes['LOADH'] = [0x28, [dec_op_type.loadh, dec_op_type.ah_ena, dec_op_type.op], False, alu_op_type.LD]
+codes['STORE'] = [0x30, [dec_op_type.store], False]
 
 # Branch
-codes['BRANCH'] = [0x48, [t_decSignal.br_op], False]
-codes['BRZ'] = [0x49, [t_decSignal.br_op], False]
-codes['BRNZ'] = [0x4a, [t_decSignal.br_op], False]
-codes['BRP'] = [0x4b, [t_decSignal.br_op], False]
-codes['BRN'] = [0x4c, [t_decSignal.br_op], False]
+codes['BRANCH'] = [0x48, [dec_op_type.br_op], False]
+codes['BRZ'] = [0x49, [dec_op_type.br_op], False]
+codes['BRNZ'] = [0x4a, [dec_op_type.br_op], False]
+codes['BRP'] = [0x4b, [dec_op_type.br_op], False]
+codes['BRN'] = [0x4c, [dec_op_type.br_op], False]
 
 # I/O
-# codes['IN'] = [0x3c, [t_decSignal.al_ena, t_decSignal.ah_ena, t_decSignal.inp], False]
-# codes['OUT'] = [0x3, [t_decSignal.al_ena, t_decSignal.ah_ena, t_decSignal.inp], False]
+# codes['IN'] = [0x3c, [dec_op_type.al_ena, dec_op_type.ah_ena, dec_op_type.inp], False]
+# codes['OUT'] = [0x3, [dec_op_type.al_ena, dec_op_type.ah_ena, dec_op_type.inp], False]
 
 # LOADADDR
 
 # LOAD/STORE INDIRECT
-codes['LOADX'] = [0x60, [t_decSignal.indls, t_decSignal.ah_ena, t_decSignal.al_ena], False]
-codes['STOREX'] = [0x70, [t_decSignal.indls, t_decSignal.store], False]
+codes['LOADX'] = [0x60, [dec_op_type.indls, dec_op_type.ah_ena, dec_op_type.al_ena], False]
+codes['STOREX'] = [0x70, [dec_op_type.indls, dec_op_type.store], False]
 
 # Jump and link
-codes['JAL'] = [0x40, [t_decSignal.jal, t_decSignal.store], False]
+codes['JAL'] = [0x40, [dec_op_type.jal, dec_op_type.store], False]
 
-dlist = [t_decSignal.op, t_decSignal.al_ena, t_decSignal.ah_ena, t_decSignal.log_add, \
-        t_decSignal.add_sub, t_decSignal.shr, t_decSignal.sel_imm, t_decSignal.store, \
-         t_decSignal.outp, t_decSignal.inp, t_decSignal.br_op, t_decSignal.jal, \
-                    t_decSignal.loadh, t_decSignal.indls]
+dlist = [dec_op_type.op, dec_op_type.al_ena, dec_op_type.ah_ena, dec_op_type.log_add, \
+        dec_op_type.add_sub, dec_op_type.shr, dec_op_type.sel_imm, dec_op_type.store, \
+         dec_op_type.outp, dec_op_type.inp, dec_op_type.br_op, dec_op_type.jal, \
+                    dec_op_type.loadh, dec_op_type.indls]
 
 
 

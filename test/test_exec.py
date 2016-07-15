@@ -1,6 +1,6 @@
 from pyleros import decoder, execute
 from pyleros.codes import dlist, codes
-from pyleros.types import alu_op_type, t_decSignal, IM_BITS, DM_BITS
+from pyleros.types import alu_op_type, dec_op_type, IM_BITS, DM_BITS
 
 import pytest
 

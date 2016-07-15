@@ -1,7 +1,7 @@
 from pyleros import fedec, alu, decoder
 from pyleros.fedec import sign_extend
 from pyleros.codes import dlist, codes, conv_bin
-from pyleros.types import alu_op_type, t_decSignal, IM_BITS, DM_BITS
+from pyleros.types import alu_op_type, dec_op_type, IM_BITS, DM_BITS
 
 import pytest
 
@@ -135,7 +135,7 @@ def test_fedec_imm():
                 yield delay(20)
                 print("alu ops", op1, alu_acc, pipe_imme, alu_opd)
                 print("alu types", type(op1), type(alu_acc), type(pipe_imme), type(alu_opd))
-                print(out_dec[int(t_decSignal.add_sub)], out_dec[int(t_decSignal.log_add)])
+                print(out_dec[int(dec_op_type.add_sub)], out_dec[int(dec_op_type.log_add)])
                 for i in range(2):
                     yield delay(33)
 

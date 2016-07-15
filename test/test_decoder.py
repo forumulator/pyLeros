@@ -1,5 +1,5 @@
 from pyleros.codes import codes, dlist
-from pyleros.types import alu_op_type, t_decSignal
+from pyleros.types import alu_op_type, dec_op_type
 
 from pyleros import decoder
 from myhdl import *
@@ -48,7 +48,7 @@ def tb_dec_top(args=None):
 
 			# check for correct decode
 			for cs in dlist:
-				if not cs == t_decSignal.op:
+				if not cs == dec_op_type.op:
 					if cs in codes[instr][1]:
 						try:
 							assert d[str(cs)] == True
@@ -79,7 +79,7 @@ def tb_dec_top(args=None):
 
 				# check for correct decode
 				for cs in dlist:
-					if not ((cs == t_decSignal.op) or (cs == t_decSignal.sel_imm)):
+					if not ((cs == dec_op_type.op) or (cs == dec_op_type.sel_imm)):
 						if cs in codes[instr][1]:
 							try:
 								assert d[str(cs)] == True

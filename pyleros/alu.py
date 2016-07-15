@@ -1,7 +1,7 @@
 from myhdl import instances, block, intbv, \
                     always_comb, always_seq
 
-from pyleros.types import alu_op_type, t_decSignal
+from pyleros.types import alu_op_type, dec_op_type
 
 
 
@@ -29,7 +29,7 @@ def pyleros_alu(dec, acc, opd, pre_acc, debug=False):
 
         if debug:
             print("inside alu", acc, opd)
-        if not dec[int(t_decSignal.add_sub)]:
+        if not dec[int(dec_op_type.add_sub)]:
             res_arith = (int(acc) + int(opd)) & 0xffff
             if debug:
                 print(res_arith, acc + opd, acc, opd)
@@ -40,19 +40,19 @@ def pyleros_alu(dec, acc, opd, pre_acc, debug=False):
     # @always_comb
     # def op_logical():
 
-        if dec[int(t_decSignal.op)] == alu_op_type.LD:
+        if dec[int(dec_op_type.op)] == alu_op_type.LD:
             # LOAD
             res_log = int(opd)
 
-        elif dec[int(t_decSignal.op)] == alu_op_type.AND:
+        elif dec[int(dec_op_type.op)] == alu_op_type.AND:
             # AND
             res_log = int(acc & opd)
 
-        elif dec[int(t_decSignal.op)] == alu_op_type.OR:
+        elif dec[int(dec_op_type.op)] == alu_op_type.OR:
             # OR
             res_log = int(acc | opd)
 
-        elif dec[int(t_decSignal.op)] == alu_op_type.XOR:
+        elif dec[int(dec_op_type.op)] == alu_op_type.XOR:
             # XOR
             res_log = int(acc ^ opd)
 
@@ -60,18 +60,18 @@ def pyleros_alu(dec, acc, opd, pre_acc, debug=False):
     # based on the decoder control signals
     # @always_comb
     # def acc_mux():
-        if dec[int(t_decSignal.log_add)]:
+        if dec[int(dec_op_type.log_add)]:
             # ADD/ SUB
             pre_acc.next = res_arith
 
         else:
-            if dec[int(t_decSignal.shr)]:
+            if dec[int(dec_op_type.shr)]:
                 # SHR
                 pre_acc.next = intbv(acc >> 1)[16:]
 
             else:
                 # LOGICAL OPERATION
-                if not (dec[int(t_decSignal.op)] ==  alu_op_type.NOP):
+                if not (dec[int(dec_op_type.op)] ==  alu_op_type.NOP):
                     pre_acc.next = intbv(res_log)[16:]
 
 

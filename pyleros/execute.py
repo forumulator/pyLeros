@@ -1,7 +1,7 @@
 from myhdl import instances, block, Signal, intbv, \
                     always_comb, always_seq
 
-from pyleros.types import t_decSignal, IM_BITS, DM_BITS
+from pyleros.types import dec_op_type, IM_BITS, DM_BITS
 
 from pyleros import alu, ram
 
@@ -71,7 +71,7 @@ def pyleros_exec(clk, reset, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc,
 
         # if not reset:
         # Mux for Data Memory read/ Immediate value retrieve
-        if pipe_dec[int(t_decSignal.sel_imm)]:
+        if pipe_dec[int(dec_op_type.sel_imm)]:
             # Immediate
             opd.next = pipe_imme
 
@@ -84,7 +84,7 @@ def pyleros_exec(clk, reset, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc,
     def mux_write_dm():
   
         # print(acc)
-        if pipe_dec[int(t_decSignal.store)]:
+        if pipe_dec[int(dec_op_type.store)]:
             dm_wr_en.next = True
         else:
             dm_wr_en.next = False
@@ -93,7 +93,7 @@ def pyleros_exec(clk, reset, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc,
 
         # MUX for selecting the data to be written
         # in case of jal
-        if pipe_dec[int(t_decSignal.jal)]:
+        if pipe_dec[int(dec_op_type.jal)]:
             temp = intbv(0)[16:]
             temp[IM_BITS:0] = pc_dly
             temp[16:IM_BITS] = 0
@@ -116,7 +116,7 @@ def pyleros_exec(clk, reset, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc,
 
         # Write the accumulator based on the 
         # high and low enable write control signals
-        if pipe_dec[int(t_decSignal.al_ena)] and pipe_dec[int(t_decSignal.ah_ena)]:
+        if pipe_dec[int(dec_op_type.al_ena)] and pipe_dec[int(dec_op_type.ah_ena)]:
             if debug:
                 print("Next value of the accumulator " + str(int(acc.next)))
             acc.next = pre_accu
@@ -124,7 +124,7 @@ def pyleros_exec(clk, reset, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc,
     @always_comb
     def fwd_acc_set():
 
-        if pipe_dec[int(t_decSignal.al_ena)] and pipe_dec[int(t_decSignal.ah_ena)]:
+        if pipe_dec[int(dec_op_type.al_ena)] and pipe_dec[int(dec_op_type.ah_ena)]:
             fwd_accu.next = pre_accu
 
 
