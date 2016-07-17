@@ -7,7 +7,7 @@ from pyleros import alu, ram
 
 
 @block
-def pyleros_exec(clk, reset, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc,
+def pyleros_exec(clk, reset, pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc,
                  back_acc, back_dm_data, fwd_accu, debug=False):
     """The execute module for pyleros. The modules is purely 
     combinatorial, except for the updating the pipeline 
@@ -50,7 +50,7 @@ def pyleros_exec(clk, reset, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc,
     dm_wr_addr_dly = Signal(intbv(0)[DM_BITS:])
 
     # Instantiate the ALU
-    alu_inst = alu.pyleros_alu(pipe_dec, acc, opd, pre_accu, debug)
+    alu_inst = alu.pyleros_alu(pipe_alu_op, pipe_dec, acc, opd, pre_accu, debug)
 
     # Instantiate the DM
     dm_inst = ram.pyleros_dm(clk, reset, dm_rd_addr, dm_wr_addr, dm_wr_data, dm_wr_en, dm_rd_data, debug)

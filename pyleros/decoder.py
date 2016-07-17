@@ -3,7 +3,7 @@ from pyleros.types import alu_op_type, dec_op_type
 
 
 @block
-def pyleros_decoder(instr_hi, out_sig, debug=False):
+def pyleros_decoder(instr_hi, alu_op, out_sig, debug=False):
     """The decoder module for pyleros, decodes the high bits
     of the instruction and generates the control signals. The modules is
     purely combinatorial. 
@@ -40,7 +40,7 @@ def pyleros_decoder(instr_hi, out_sig, debug=False):
             print("Inside decoder with instruction_hi:", instr_hi)
 
         # Set the defaults of all signals
-        out_sig[int(dec_op_type.op)].next = alu_op_type.NOP
+        alu_op.next = alu_op_type.NOP
         out_sig[int(dec_op_type.al_ena)].next = False
         out_sig[int(dec_op_type.ah_ena)].next = False
         out_sig[int(dec_op_type.log_add)].next = False
@@ -143,19 +143,18 @@ def pyleros_decoder(instr_hi, out_sig, debug=False):
             # alu_op_type
             if instr_hi[3:1] == 0b00:
                 # LOAD
-                out_sig[int(dec_op_type.op)].next = alu_op_type.LD
-
+                alu_op.next = alu_op_type.LD
             elif instr_hi[3:1] == 0b01:
                 # AND
-                out_sig[int(dec_op_type.op)].next = alu_op_type.AND
+                alu_op.next = alu_op_type.AND
 
             elif instr_hi[3:1] == 0b10:
                 # or
-                out_sig[int(dec_op_type.op)].next = alu_op_type.OR
+                alu_op.next = alu_op_type.OR
 
             elif instr_hi[3:1] == 0b11:
                 # XOR
-                out_sig[int(dec_op_type.op)].next = alu_op_type.XOR
+                alu_op.next = alu_op_type.XOR
 
     return instances()
 

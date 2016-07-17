@@ -23,13 +23,8 @@ class TestClass:
 
         # DECODER SIGNALS
 
-        d = {}
-        for i in dlist:
-            d[str(i)] = Signal(bool(0))
-        
-        d['op'] = Signal(alu_op_type.LD)
 
-        pipe_dec = [d[str(sig)] for sig in dlist]
+        pipe_dec = [Signal(bool(0)) for sig in dlist]
 
         # Input Signals to Execute
         pipe_imme = Signal(intbv(0)[16:])
@@ -43,7 +38,7 @@ class TestClass:
             pipe_dm_addr, pipe_pc, back_acc, back_dm_data
 
         self.fwd_accu = Signal(intbv(0)[16:])
-
+        self.pipe_alu_op = Signal(alu_op_type.NOP)
     
 
 
@@ -87,8 +82,8 @@ class TestClass:
             back_dm_data, back_acc = back_dm_data, back_acc
             
             fedec_inst = fedec.pyleros_fedec(clock, reset, back_acc, back_dm_data, self.fwd_accu, \
-                                        pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc, filename=bin_list)
-            exec_inst = execute.pyleros_exec(clock, reset, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc, \
+                                        self.pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc, filename=bin_list)
+            exec_inst = execute.pyleros_exec(clock, reset, self.pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc, \
                                             back_acc, back_dm_data, self.fwd_accu)
 
             @always(delay(10))
@@ -197,9 +192,10 @@ class TestClass:
                 pipe_dm_addr, pipe_pc, back_acc, back_dm_data = self.signals
             
             fedec_inst = fedec.pyleros_fedec(clock, reset, back_acc, back_dm_data, self.fwd_accu, \
-                                        pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc, filename=bin_list)
-            exec_inst = execute.pyleros_exec(clock, reset, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc, \
+                                        self.pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc, filename=bin_list)
+            exec_inst = execute.pyleros_exec(clock, reset, self.pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc, \
                                             back_acc, back_dm_data, self.fwd_accu)
+
 
             @always(delay(10))
             def tbclk():
@@ -307,8 +303,8 @@ class TestClass:
                 pipe_dm_addr, pipe_pc, back_acc, back_dm_data = self.signals
 
             fedec_inst = fedec.pyleros_fedec(clock, reset, back_acc, back_dm_data, self.fwd_accu, \
-                                        pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc, filename=bin_list)
-            exec_inst = execute.pyleros_exec(clock, reset, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc, \
+                                        self.pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc, filename=bin_list)
+            exec_inst = execute.pyleros_exec(clock, reset, self.pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc, \
                                             back_acc, back_dm_data, self.fwd_accu)
 
             @always(delay(10))

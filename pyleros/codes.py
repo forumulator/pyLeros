@@ -13,13 +13,13 @@ codes['SUB'] = [0x0c, [dec_op_type.al_ena, dec_op_type.ah_ena, dec_op_type.log_a
 codes['SHR'] = [0x10, [dec_op_type.al_ena, dec_op_type.ah_ena, dec_op_type.shr], False]
 
 # ALU operations
-codes['LOAD'] = [0x20, [dec_op_type.al_ena, dec_op_type.ah_ena, dec_op_type.op], True, alu_op_type.LD]
-codes['AND'] = [0x22, [dec_op_type.al_ena, dec_op_type.ah_ena, dec_op_type.op], True, alu_op_type.AND]
-codes['OR'] = [0x24, [dec_op_type.al_ena, dec_op_type.ah_ena, dec_op_type.op], True, alu_op_type.OR]
-codes['XOR'] = [0x26, [dec_op_type.al_ena, dec_op_type.ah_ena, dec_op_type.op], True, alu_op_type.XOR]
+codes['LOAD'] = [0x20, [dec_op_type.al_ena, dec_op_type.ah_ena], True, alu_op_type.LD]
+codes['AND'] = [0x22, [dec_op_type.al_ena, dec_op_type.ah_ena], True, alu_op_type.AND]
+codes['OR'] = [0x24, [dec_op_type.al_ena, dec_op_type.ah_ena], True, alu_op_type.OR]
+codes['XOR'] = [0x26, [dec_op_type.al_ena, dec_op_type.ah_ena], True, alu_op_type.XOR]
 
 # Load high
-codes['LOADH'] = [0x28, [dec_op_type.loadh, dec_op_type.ah_ena, dec_op_type.op], False, alu_op_type.LD]
+codes['LOADH'] = [0x28, [dec_op_type.loadh, dec_op_type.ah_ena], False, alu_op_type.LD]
 codes['STORE'] = [0x30, [dec_op_type.store], False]
 
 # Branch
@@ -42,7 +42,7 @@ codes['STOREX'] = [0x70, [dec_op_type.indls, dec_op_type.store], False]
 # Jump and link
 codes['JAL'] = [0x40, [dec_op_type.jal, dec_op_type.store], False]
 
-dlist = [dec_op_type.op, dec_op_type.al_ena, dec_op_type.ah_ena, dec_op_type.log_add, \
+dlist = [dec_op_type.al_ena, dec_op_type.ah_ena, dec_op_type.log_add, \
         dec_op_type.add_sub, dec_op_type.shr, dec_op_type.sel_imm, dec_op_type.store, \
          dec_op_type.outp, dec_op_type.inp, dec_op_type.br_op, dec_op_type.jal, \
                     dec_op_type.loadh, dec_op_type.indls]

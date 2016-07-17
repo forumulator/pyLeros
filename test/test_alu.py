@@ -29,26 +29,18 @@ def test_alu():
         # DECODER SIGNALS
         instr_hi = Signal(intbv(0)[8:])
 
-        d, e = {}, {}
-        for i in dlist:
-            d[str(i)] = Signal(bool(0))
-            e[str(i)] = Signal(bool(0))
+        dec_signal_list = [Signal(bool(0)) for sig in dlist]
+        alu_op = Signal(alu_op_type.NOP)
 
-        d['op'] = Signal(alu_op_type.LD)
-        e['op'] = Signal(alu_op_type.LD)
-
-        out_list = [d[str(sig)] for sig in dlist]
-        o_list = [e[str(sig)] for sig in dlist]
-
-        decode_inst = decoder.pyleros_decoder(instr_hi, out_list)
+        decode_inst = decoder.pyleros_decoder(instr_hi, alu_op, dec_signal_list)
 
         # ALU SIGNALS
-        # out_list
+        # dec_signal_list
         alu_acc = Signal(intbv(0)[16:])
         alu_opd = Signal(intbv(0)[16:])
         alu_res = Signal(intbv(0)[16:])
 
-        alu_inst = alu.pyleros_alu(out_list, alu_acc, alu_opd, alu_res)
+        alu_inst = alu.pyleros_alu(alu_op, dec_signal_list, alu_acc, alu_opd, alu_res)
 
 
         rd_addr = Signal(intbv(0)[IM_BITS:])
@@ -148,13 +140,7 @@ def test_alu():
                         # Set the decoder input
                         instr_op = codes[instr][0]
                         instr_hi.next = instr_op
-                        # o_list[int(dec_op_type.add_sub)].next = False
-                        # o_list[int(dec_op_type.log_add)].next = True
-                        # yield delay(20)
-
-                        # print(o_list[int(dec_op_type.add_sub)], o_list[int(dec_op_type.log_add)])
-
-                        # Set the ALU inputs
+                        
                         alu_acc.next = op1
                         alu_opd.next = op2
 

@@ -6,7 +6,7 @@ from pyleros.types import alu_op_type, dec_op_type
 
 
 @block
-def pyleros_alu(dec, acc, opd, pre_acc, debug=False):
+def pyleros_alu(alu_op, dec, acc, opd, pre_acc, debug=False):
     """The alu module for pyleros, purely combinatorial
 
     Arguments (ports):
@@ -40,19 +40,19 @@ def pyleros_alu(dec, acc, opd, pre_acc, debug=False):
     # @always_comb
     # def op_logical():
 
-        if dec[int(dec_op_type.op)] == alu_op_type.LD:
+        if alu_op == alu_op_type.LD:
             # LOAD
             res_log = int(opd)
 
-        elif dec[int(dec_op_type.op)] == alu_op_type.AND:
+        elif alu_op == alu_op_type.AND:
             # AND
             res_log = int(acc & opd)
 
-        elif dec[int(dec_op_type.op)] == alu_op_type.OR:
+        elif alu_op == alu_op_type.OR:
             # OR
             res_log = int(acc | opd)
 
-        elif dec[int(dec_op_type.op)] == alu_op_type.XOR:
+        elif alu_op == alu_op_type.XOR:
             # XOR
             res_log = int(acc ^ opd)
 
@@ -71,7 +71,7 @@ def pyleros_alu(dec, acc, opd, pre_acc, debug=False):
 
             else:
                 # LOGICAL OPERATION
-                if not (dec[int(dec_op_type.op)] ==  alu_op_type.NOP):
+                if not (alu_op ==  alu_op_type.NOP):
                     pre_acc.next = intbv(res_log)[16:]
 
 

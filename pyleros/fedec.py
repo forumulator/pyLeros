@@ -9,8 +9,8 @@ from pyleros import decoder, rom
 
 
 @block
-def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu, 
-                pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc, filename=None, debug=False):
+def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu, pipe_alu_op,
+                 pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc, filename=None, debug=False):
     """The fedec module for pyleros, that is, the fetch
     and decode pipeline stage. The modules is purely 
     combinatorial, except for the updating the pipeline 
@@ -21,7 +21,7 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu,
     of DM address. an ALU operation on two local variables takes
     two cycles to execute and another cycle if the result needs 
     to written back to a local variable
-
+    
     Arguments (ports):
         clk: IN Clock signal
         reset: IN Async reset signal
@@ -63,13 +63,12 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu,
     pc_op = Signal(intbv(0)[16:])
 
     decode = [Signal(bool(0)) for i in dlist]
-    decode[int(dec_op_type.op)] = Signal(alu_op_type.LD)
-
+    alu_op = Signal(alu_op_type.NOP)
     # Instantiate the instruction memory
     im_inst = rom.pyleros_im(clk, reset, im_addr, instr, filename, debug)
 
     # Instantiate the decoder
-    dec_inst = decoder.pyleros_decoder(instr_hi, decode, debug)
+    dec_inst = decoder.pyleros_decoder(instr_hi, alu_op, decode, debug)
 
     @always_comb
     def sync_sig():
@@ -219,6 +218,8 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu,
         # pipeline register
         for sig in dlist:
             pipe_dec[int(sig)].next = decode[int(sig)]
+
+        pipe_alu_op.next = alu_op
 
     @always_seq(clk.posedge, reset=reset)
     def other_pipe():

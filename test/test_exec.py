@@ -19,36 +19,31 @@ class TestClass:
     @block
     def setup_class(self):
 
-        self.clock = Signal(bool(0))
-        self.reset = ResetSignal(0, active=1, async=True)
+        clock = Signal(bool(0))
+        reset = ResetSignal(0, active=1, async=True)
 
         # DECODER SIGNALS
-        self.instr_hi = Signal(intbv(0)[8:])
+        instr_hi = Signal(intbv(0)[8:])
 
-        d = {}
-        for i in dlist:
-            d[str(i)] = Signal(bool(0))
-        
-        d['op'] = Signal(alu_op_type.LD)
-
-        self.out_list = [d[str(sig)] for sig in dlist]
+        out_list = [Signal(bool(0)) for sig in dlist]
+        pipe_alu_op = Signal(alu_op_type.NOP)
 
         # Input Signals to Execute
-        self.in_imm = Signal(intbv(0)[16:])
-        self.in_dm_addr = Signal(intbv(0)[DM_BITS:])
-        self.in_pc = Signal(intbv(0)[IM_BITS:])
+        in_imm = Signal(intbv(0)[16:])
+        in_dm_addr = Signal(intbv(0)[DM_BITS:])
+        in_pc = Signal(intbv(0)[IM_BITS:])
 
-        self.out_acc = Signal(intbv(0)[16:])
-        self.out_dm_data = Signal(intbv(0)[16:])
+        out_acc = Signal(intbv(0)[16:])
+        out_dm_data = Signal(intbv(0)[16:])
 
-        self.fwd_accu = Signal(intbv(0)[16:])
+        fwd_accu = Signal(intbv(0)[16:])
 
-        self.signals = self.clock, self.reset, self.instr_hi, self.out_list, self.in_imm, \
-            self.in_dm_addr, self.in_pc, self.out_acc, self.out_dm_data
+        self.signals = clock, reset, instr_hi, out_list, in_imm, \
+            in_dm_addr, in_pc, out_acc, out_dm_data
 
-        self.decode_inst = decoder.pyleros_decoder(self.instr_hi, self.out_list)
-        self.exec_inst = execute.pyleros_exec(self.clock, self.reset, self.out_list, self.in_imm, self.in_dm_addr, self.in_pc, \
-                                            self.out_acc, self.out_dm_data, self.fwd_accu)
+        self.decode_inst = decoder.pyleros_decoder(instr_hi, pipe_alu_op, out_list)
+        self.exec_inst = execute.pyleros_exec(clock, reset, pipe_alu_op, out_list, in_imm, in_dm_addr, in_pc, \
+                                            out_acc, out_dm_data, fwd_accu)
 
         return self.decode_inst, self.exec_inst
 

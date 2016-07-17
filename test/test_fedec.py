@@ -22,6 +22,34 @@ def test_fedec_imm():
 
         """
 
+        def create_instr_list():
+            instr_list, bin_list = [], []
+
+
+            for instr in codes:
+                if (not codes[instr][2]) or (instr == 'NOP') or (instr == 'LOADH') or (instr == 'STORE'):
+                    continue
+
+                for trie in range(30):
+
+                    op1 = randrange(2**15)
+                    # 8-bit imm opd
+                    op2 = randrange(2**7)
+
+                    bin_code = codes[instr][0]
+                    # Immediate version
+                    bin_imme = bin_code | 0x01
+
+                    instr_list.append([instr, op1, op2])
+
+                    #Add operand op2 to instr
+                    bin_code = (bin_imme << 8) | (op2 & 0xff)
+
+                    bin_list.append(bin_code)
+            return instr_list, bin_list
+
+
+
         clock = Signal(bool(0))
         reset = ResetSignal(0, active=1, async=True)
 
@@ -32,19 +60,13 @@ def test_fedec_imm():
         pipe_pc = Signal(intbv(0)[IM_BITS:])
         fwd_accu = Signal(intbv(0)[16:])
 
-        d, e = {}, {}
-        for i in dlist:
-            d[str(i)] = Signal(bool(0))
-            e[str(i)] = Signal(bool(0))
-            
-        d['op'] = Signal(alu_op_type.LD)
-        e['op'] = Signal(alu_op_type.LD)
-
-        out_dec = [d[str(sig)] for sig in dlist]
-        test_dec = [e[str(sig)] for sig in dlist]
+        out_dec = [Signal(bool(0)) for sig in dlist]
+        test_dec = [Signal(bool(0)) for sig in dlist]
+        alu_op = Signal(alu_op_type.NOP)
+        pipe_alu_op = Signal(alu_op_type.NOP)
     
         instr_hi = Signal(intbv(0)[8:])
-        dec_inst = decoder.pyleros_decoder(instr_hi, test_dec)
+        dec_inst = decoder.pyleros_decoder(instr_hi, alu_op, test_dec)
 
 
         # ALU SIGNALS
@@ -53,39 +75,13 @@ def test_fedec_imm():
         alu_opd = Signal(intbv(0)[16:])
         alu_res = Signal(intbv(0)[16:])
         
+        instr_list, bin_list = create_instr_list()
 
-        alu_inst = alu.pyleros_alu(out_dec, alu_acc, alu_opd, alu_res)
+        alu_inst = alu.pyleros_alu(pipe_alu_op, out_dec, alu_acc, alu_opd, alu_res)
 
-
-    
-        instr_list, bin_list = [], []
-
-
-        for instr in codes:
-            if (not codes[instr][2]) or (instr == 'NOP') or (instr == 'LOADH') or (instr == 'STORE'):
-                continue
-
-            for trie in range(30):
-
-                op1 = randrange(2**15)
-                # 8-bit imm opd
-                op2 = randrange(2**7)
-
-                bin_code = codes[instr][0]
-                # Immediate version
-                bin_imme = bin_code | 0x01
-
-                instr_list.append([instr, op1, op2])
-
-                #Add operand op2 to instr
-                bin_code = (bin_imme << 8) | (op2 & 0xff)
-
-                bin_list.append(bin_code)
-
-
-        fedec_inst = fedec.pyleros_fedec(clock, reset, back_acc, back_dm_data, fwd_accu, \
+        fedec_inst = fedec.pyleros_fedec(clock, reset, back_acc, back_dm_data, fwd_accu, pipe_alu_op,
                                         out_dec, pipe_imme, pipe_dm_addr, pipe_pc, filename=bin_list)
-
+    
 
         @always(delay(100))
         def tbclk():

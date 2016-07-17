@@ -16,13 +16,8 @@ def tb_dec_top(args=None):
 	# the high 8 bits of the instruction
 	instr_hi = Signal(intbv(0)[8:])
 
-	d = {}
-	for i in dlist:
-		d[str(i)] = Signal(bool(0))
-
-	d['op'] = Signal(alu_op_type.LD)
-
-	out_list = [d[str(sig)] for sig in dlist]
+	dec_signal_list = [Signal(bool(0)) for sig in dlist]
+	alu_op = Signal(alu_op_type.NOP)
 
 	@always(delay(10))
 	def tbclk():
@@ -31,7 +26,7 @@ def tb_dec_top(args=None):
 
 
 	# instantiate the decoder
-	decode_inst = decoder.pyleros_decoder(instr_hi, out_list)
+	decode_inst = decoder.pyleros_decoder(instr_hi, alu_op, dec_signal_list)
 
 	@instance
 	def tbstim():
@@ -48,26 +43,11 @@ def tb_dec_top(args=None):
 
 			# check for correct decode
 			for cs in dlist:
-				if not cs == dec_op_type.op:
-					if cs in codes[instr][1]:
-						try:
-							assert d[str(cs)] == True
-						except Exception as e:
-							print(instr)
-							print(cs)
-							raise e
-
-					else:
-						try:
-							assert d[str(cs)] == False
-						except Exception as e:
-							print(instr)
-							print(cs)
-							raise e
-
+				if cs in codes[instr][1]:
+					assert dec_signal_list[int(cs)] == True
 				else:
-					if cs in codes[instr][1]:
-						assert d[str(cs)] == codes[instr][3]
+					assert dec_signal_list[int(cs)] == False
+
 
 			yield delay(33)
 
@@ -79,23 +59,11 @@ def tb_dec_top(args=None):
 
 				# check for correct decode
 				for cs in dlist:
-					if not ((cs == dec_op_type.op) or (cs == dec_op_type.sel_imm)):
-						if cs in codes[instr][1]:
-							try:
-								assert d[str(cs)] == True
-							except Exception as e:
-								print(instr)
-								print(cs)
-								raise e								
-						else:
-							
-							assert d[str(cs)] == False
 
+					if (cs in codes[instr][1]) or (cs == dec_op_type.sel_imm):
+						assert dec_signal_list[int(cs)] == True
 					else:
-						if cs in codes[instr][1]:
-							assert d[str(cs)] == codes[instr][3]
-
-					assert d['sel_imm'] == True
+						assert dec_signal_list[int(cs)] == False
 
 			for ii in range(5):
 				yield clock.posedge

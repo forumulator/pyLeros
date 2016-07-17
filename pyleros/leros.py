@@ -24,36 +24,36 @@ def pyleros(clk, reset, filename=None):
     """
 
     # Accumulator, OUT from exec, IN to fedec
-    acc = Signal(intbv(0)[16:])
+    back_acc = Signal(intbv(0)[16:])
+    fwd_accu = Signal(intbv(0)[16:])
+
 
     # read data from DM, IN to fedec, OUT from exec
-    dm_data = Signal(intbv(0)[16:])
+    back_dm_data = Signal(intbv(0)[16:])
 
     # Decoder control signals list
     d = {}
     for i in dlist:
         d[str(i)] = Signal(bool(0))
 
-    d['op'] = Signal(alu_op_type.LD)
-    dec = [d[str(sig)] for sig in dlist]
+    pipe_dec = [d[str(sig)] for sig in dlist]
 
     # imm value encoded in instruction, 
     # OUT from fedec, IN to decode
-    imm_val = Signal(intbv(0)[16:])
-
+    pipe_imm_val = Signal(intbv(0)[16:])
+    pipe_alu_op = Signal(alu_op_type.NOP)
     # DM read/write addr, OUT from fedec,
     # IN to exec
-    dm_addr = Signal(intbv(0)[DM_BITS:])
+    pipe_dm_addr = Signal(intbv(0)[DM_BITS:])
 
     # Value of PC OUT from fedec, in to execute
-    pc = Signal(intbv(0)[IM_BITS:]) 
-
+    pipe_pc = Signal(intbv(0)[IM_BITS:]) 
     
 
-    inst_fedec = fedec.pyleros_fedec(clk, reset, acc, dm_data,
-                                        dec, imm_val, dm_addr, pc, filename=filename)
+    inst_fedec = fedec.pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu, pipe_alu_op,
+                                        pipe_dec, pipe_imm_val, pipe_dm_addr, pipe_pc, filename=filename)
 
-    inst_exec = execute.pyleros_exec(clk, reset, dec, imm_val, dm_addr, pc, acc, dm_data)
+    inst_exec = execute.pyleros_exec(clk, reset, pipe_alu_op, pipe_dec, pipe_imm_val, pipe_dm_addr, pipe_pc, back_acc, back_dm_data, fwd_accu)
 
 
     return instances()
