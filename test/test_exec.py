@@ -43,7 +43,7 @@ class TestClass:
 
         self.decode_inst = decoder.pyleros_decoder(instr_hi, pipe_alu_op, out_list)
         self.exec_inst = execute.pyleros_exec(clock, reset, pipe_alu_op, out_list, in_imm, in_dm_addr, in_pc, \
-                                            out_acc, out_dm_data, fwd_accu)
+                                            out_acc, out_dm_data, fwd_accu, True)
 
         return self.decode_inst, self.exec_inst
 
@@ -102,8 +102,8 @@ class TestClass:
                     instr_hi.next = instr_bin[16:8]
 
                     in_imm.next = instr_bin & 0xff
-                    yield clock.posedge
-                    yield delay(1)
+                    
+                    yield delay(4)
 
                     if instr == 'ADD':
                         assert ((acc + op) & 0xffff) == out_acc
@@ -113,6 +113,10 @@ class TestClass:
                         acc -= op
                         acc &= 0xffff   
 
+                    yield clock.posedge
+                    yield delay(3)
+
+                    
                 raise StopSimulation
 
             return instances()
@@ -143,7 +147,8 @@ class TestClass:
             def tbstim():
                 # local accumulator var
                 acc = 0
-                yield delay(11)
+                yield clock.posedge
+                yield delay(1)
 
                 for addr in range(len(instr_list)):
 
@@ -151,12 +156,10 @@ class TestClass:
                     op = instr_list[addr][1]
                     instr_bin = instr_list[addr][2]
                     instr_hi.next = instr_bin[16:8]
-
                     in_imm.next = instr_bin & 0xff
-                    # these two together constitute clock.negedge
-                    yield clock.posedge
-                    yield delay(1)
 
+                    yield delay(3)
+                    # these two together constitute clock.negedge
                     if instr == 'OR':
                         assert ((acc | op) & 0xffff) == out_acc
                         acc |= op
@@ -170,6 +173,8 @@ class TestClass:
                         acc = ((acc & 0xffff) >> 1)
                         assert acc == out_acc
                             
+                    yield clock.posedge
+                    yield delay(2)
                     # if addr == 9:
                     #   raise Exception
 
