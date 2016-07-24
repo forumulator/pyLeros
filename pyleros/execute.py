@@ -61,7 +61,6 @@ def pyleros_exec(clk, reset, pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pip
 
         # if not reset:
         # print(acc)
-        back_acc.next = acc
         back_dm_data.next = dm_rd_data
         dm_rd_addr.next = pipe_dm_addr
 
@@ -118,7 +117,7 @@ def pyleros_exec(clk, reset, pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pip
         # high and low enable write control signals
         if pipe_dec[int(dec_op_type.al_ena)] and pipe_dec[int(dec_op_type.ah_ena)]:
             if debug:
-                print("Next value of the accumulator " + str(int(acc.next)))
+                print("Next value of the accumulator " + str(int(pre_accu)))
             acc.next = pre_accu
 
     @always_comb
@@ -126,7 +125,7 @@ def pyleros_exec(clk, reset, pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pip
 
         if pipe_dec[int(dec_op_type.al_ena)] and pipe_dec[int(dec_op_type.ah_ena)]:
             fwd_accu.next = pre_accu
-
+            back_acc.next = pre_accu
 
        
     return instances()

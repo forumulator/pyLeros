@@ -1,6 +1,7 @@
 from pyleros import fedec, execute
 from pyleros.codes import dlist, codes
 from pyleros.types import alu_op_type, dec_op_type, IM_BITS, DM_BITS
+from pyleros.sim import sim
 
 import pytest
 
@@ -180,8 +181,7 @@ class TestClass:
                 for i in range(len(instr_list)):
                     bin_list.append(instr_list[i][2])
 
-                print(len(bin_list))
-
+                
                 return instr_list, bin_list
 
 
@@ -309,7 +309,10 @@ class TestClass:
                                         self.pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc, filename=bin_list, debug=True)
             exec_inst = execute.pyleros_exec(clock, reset, self.pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc, \
                                             back_acc, back_dm_data, self.fwd_accu, True)
+            simu_inst = sim.simulator(bin_list) 
+            
 
+            print(bin_list)
             @always(delay(10))
             def tbclk():
                 clock.next = not clock
@@ -323,10 +326,16 @@ class TestClass:
                 # yield delay(11) # or yield clock.posedge, same result.
                 yield clock.posedge
                 yield delay(1)
+                yield clock.posedge
                 addr = 0
                 for addr in range(15):
-
+                    # simu_inst.__next__()
+                    state = simu_inst.__next__()
+                    print("CYC CYC CYC CYC CYC CYC CYC CYC CYC CYC CYC CYC CYC CYC CYC CYC CYC CYC CYC CYC CYC CYC CYC CYC CYC CYC")
                     yield clock.posedge
+                    if (back_acc == 23 and state[0] == 23):
+                        print("**************************")
+                    assert state[0] == back_acc
 
                 assert back_acc == 37
 

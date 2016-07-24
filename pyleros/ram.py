@@ -43,6 +43,8 @@ def pyleros_dm(clk, reset, rd_addr, wr_addr, wr_data, wr_en, rd_data, debug=Fals
                 # if wr_addr == 255:
                 #     for i in range(256):
                 #         print("At {addr} : {val}".format(addr=(i), val=int(DM[i].val)))
+                if debug:
+                    print("Writing to DM at " + str(wr_addr) + " " + str(int(wr_data.val)))
                 DM[int(wr_addr)].next = intbv(wr_data.val)[16:]
 
     return instances()
