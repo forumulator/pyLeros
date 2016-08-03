@@ -380,10 +380,24 @@ class TestClass:
                 for addr in range(1, 256):
                     ind = randrange(num)
                     instr = tup[ind]
-                    if ind < 9:
-                        op = randrange(2**8)
+                    if instr == 'JAL':
+                        ti = 'LOAD'
+                        op = randrange(256)
+                        instr_bin = ((codes[ti][0] | True) << 8) | op
+                        instr_list.append((ti, op, instr_bin))
+                        op = 0x01
+                    elif instr == 'STOREX' or instr == 'STOREX':
+                        ti = 'LOAD'
+                        op = randrange(128)
+                        instr_bin = ((codes[ti][0] | True) << 8) | op
+                        instr_list.append((ti, op, instr_bin))
+                        op = randrange(128)
                     else:
-                        op = randrange(5)
+                        if ind < 9:
+                            op = randrange(2**8)
+                        else:
+                            op = randrange(5)
+
                     if codes[instr][2]:
                         ibit = randrange(2)
                     else:
