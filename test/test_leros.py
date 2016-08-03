@@ -42,6 +42,19 @@ class TestClass:
         self.pipe_alu_op = Signal(alu_op_type.NOP)
     
 
+    @block
+    def init_func(self, bin_list):
+        clock, reset, pipe_dec, pipe_imme, \
+            pipe_dm_addr, pipe_pc, back_acc, back_dm_data = self.signals
+
+        self.fedec_inst = fedec.pyleros_fedec(clock, reset, back_acc, back_dm_data, self.fwd_accu, \
+                                    self.pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc, filename=bin_list, debug=True)
+        self.exec_inst = execute.pyleros_exec(clock, reset, self.pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc, \
+                                        back_acc, back_dm_data, self.fwd_accu, True)
+        self.simu_inst = sim.simulator(bin_list) 
+        return self.fedec_inst, self.exec_inst
+
+
 
     def test_arith(self):
 
@@ -80,12 +93,10 @@ class TestClass:
             # Initialise signals and dut's
             clock, reset, pipe_dec, pipe_imme, \
                 pipe_dm_addr, pipe_pc, back_acc, back_dm_data = self.signals
-            back_dm_data, back_acc = back_dm_data, back_acc
-            
-            fedec_inst = fedec.pyleros_fedec(clock, reset, back_acc, back_dm_data, self.fwd_accu, \
-                                        self.pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc, filename=bin_list, debug=True)
-            exec_inst = execute.pyleros_exec(clock, reset, self.pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc, \
-                                            back_acc, back_dm_data, self.fwd_accu, True)
+
+            self.init_func(bin_list)
+            fedec_inst, exec_inst, simu_inst =  self.fedec_inst, self.exec_inst, self.simu_inst
+
 
             @always(delay(10))
             def tbclk():
@@ -100,6 +111,7 @@ class TestClass:
                 # yield delay(11) # or yield clock.posedge, same result.
                 # yield clock.posedge
                 yield clock.posedge
+                yield delay(2)
 
                 for addr in range(1, len(instr_list)):
 
@@ -107,9 +119,12 @@ class TestClass:
                     op = instr_list[addr][1]
                     instr_bin = instr_list[addr][2]
 
+                    state = simu_inst.__next__()
                     yield clock.posedge
                     yield delay(3)
-                    print("This is iteration " + str(addr))
+                    assert state[0] == back_acc
+
+                    
                     if addr == 0:
                         print("At 0x00:", instr, op, back_acc)
                     if instr == 'ADD':
@@ -190,11 +205,9 @@ class TestClass:
             # Initialise signals and dut's
             clock, reset, pipe_dec, pipe_imme, \
                 pipe_dm_addr, pipe_pc, back_acc, back_dm_data = self.signals
-            
-            fedec_inst = fedec.pyleros_fedec(clock, reset, back_acc, back_dm_data, self.fwd_accu, \
-                                        self.pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc, filename=bin_list, debug=True)
-            exec_inst = execute.pyleros_exec(clock, reset, self.pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc, \
-                                            back_acc, back_dm_data, self.fwd_accu, True)
+
+            self.init_func(bin_list)
+            fedec_inst, exec_inst, simu_inst =  self.fedec_inst, self.exec_inst, self.simu_inst
 
 
             @always(delay(10))
@@ -213,14 +226,14 @@ class TestClass:
 
                 addr = 0
                 for addr in range(1, 20):
-
+                    state = simu_inst.__next__()
                     instr = instr_list[addr][0]
                     op = instr_list[addr][1]
                     instr_bin = instr_list[addr][2]
                     # print("Bf", addr, back_acc)
                     yield clock.posedge
-
                     yield delay(1)
+                    assert state[0] == back_acc
                     # print("Af", addr,  back_acc)
                     # print("This is iteration " + str(addr))
                     if instr == 'ADD':
@@ -237,8 +250,10 @@ class TestClass:
                     op = instr_list[mod_addr][1]
                     instr_bin = instr_list[mod_addr][2]
 
+                    state = simu_inst.__next__()
                     yield clock.posedge
                     yield delay(1)
+                    assert state[0] == back_acc
 
                     if instr == 'LOAD':
                         assert addr == back_acc
@@ -249,6 +264,8 @@ class TestClass:
 
         inst = tb_ls()
         inst.run_sim()
+
+    
 
 
     def test_branch(self):
@@ -305,14 +322,9 @@ class TestClass:
             clock, reset, pipe_dec, pipe_imme, \
                 pipe_dm_addr, pipe_pc, back_acc, back_dm_data = self.signals
 
-            fedec_inst = fedec.pyleros_fedec(clock, reset, back_acc, back_dm_data, self.fwd_accu, \
-                                        self.pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc, filename=bin_list, debug=True)
-            exec_inst = execute.pyleros_exec(clock, reset, self.pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc, \
-                                            back_acc, back_dm_data, self.fwd_accu, True)
-            simu_inst = sim.simulator(bin_list) 
-            
+            self.init_func(bin_list)
+            fedec_inst, exec_inst, simu_inst =  self.fedec_inst, self.exec_inst, self.simu_inst           
 
-            print(bin_list)
             @always(delay(10))
             def tbclk():
                 clock.next = not clock
@@ -331,10 +343,7 @@ class TestClass:
                 for addr in range(15):
                     # simu_inst.__next__()
                     state = simu_inst.__next__()
-                    print("CYC CYC CYC CYC CYC CYC CYC CYC CYC CYC CYC CYC CYC CYC CYC CYC CYC CYC CYC CYC CYC CYC CYC CYC CYC CYC")
                     yield clock.posedge
-                    if (back_acc == 23 and state[0] == 23):
-                        print("**************************")
                     assert state[0] == back_acc
 
                 assert back_acc == 37
@@ -345,3 +354,90 @@ class TestClass:
 
         inst = tb_branch()
         inst.run_sim()
+
+
+
+    def test_random(self):
+
+        @block
+        def tb_rand( args=None):
+            """Test branches.
+
+            """
+
+            def create_instr():
+                """Create a list of random instructions
+                
+                """
+                instr_list, bin_list = [], []
+                op = 0
+                ibit = 1
+
+                tup = tuple(['NOP', 'ADD', 'SUB', 'OR', 'AND', 'XOR', 'SHR', 'LOAD', 'STORE', 'LOADX', 'STOREX', 'BRANCH', 'BRZ', 'BRNZ', 'BRP', 'BRN', 'JAL'])
+                num = len(tup)
+
+                instr_list.append(('NOP', 0, 0))
+                for addr in range(1, 256):
+                    ind = randrange(num)
+                    instr = tup[ind]
+                    if ind < 9:
+                        op = randrange(2**8)
+                    else:
+                        op = randrange(5)
+                    if codes[instr][2]:
+                        ibit = randrange(2)
+                    else:
+                        ibit = 0
+
+                    instr_bin = ((codes[instr][0] | ibit) << 8) | op
+                    instr_list.append((instr, op, instr_bin))
+
+                for i in range(len(instr_list)):
+                    bin_list.append(instr_list[i][2])
+
+                return instr_list, bin_list
+
+            instr_list, bin_list = create_instr()
+
+            # Initialise signals and dut's
+            clock, reset, pipe_dec, pipe_imme, \
+                pipe_dm_addr, pipe_pc, back_acc, back_dm_data = self.signals
+
+            self.init_func(bin_list)
+            fedec_inst, exec_inst, simu_inst =  self.fedec_inst, self.exec_inst, self.simu_inst           
+
+            @always(delay(10))
+            def tbclk():
+                clock.next = not clock
+
+            # the alu is run once on intialization anyway, and the value
+            # is set to zero(0 + 0)
+            @instance
+            def tbstim():
+                # local accumulator var
+                acc = 0
+                # yield delay(11) # or yield clock.posedge, same result.
+                yield clock.posedge
+                yield delay(1)
+                yield clock.posedge
+                addr = 0
+                for addr in range(255):
+
+                    instr = instr_list[addr + 1][0]
+                    op = instr_list[addr + 1][1]
+
+                    # simu_inst.__next__()
+                    state = simu_inst.__next__()
+                    yield clock.posedge
+                    print(instr, op, back_acc, "--------------------------------------------------------------")
+                    assert state[0] == back_acc
+
+                # assert 0
+
+                raise StopSimulation
+
+            return instances()
+
+        inst = tb_rand()
+        inst.run_sim()
+

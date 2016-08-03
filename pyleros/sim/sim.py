@@ -50,14 +50,14 @@ def simulator(instr_list = None, steps = 0):
         pc_next = pc + 1
         # check the o bit to find if the operation is in the 
         # imm. category
-        if ((instr >> 8) & 0x01) != 0:
+        if ((instr) & 0x0100) != 0:
             # Use the immediate value
 
-            val = instr & 0xff
+            val = instr & 0x00ff
 
             # Sign-extend
-            if (val & 0x80) != 0:
-                val = val | 0xff00
+            # if (val & 0x80) != 0:
+            #     val = val | 0xff00
         else:
             val = data_mem[instr & 0xff]
             rd_data = val
@@ -137,7 +137,7 @@ def simulator(instr_list = None, steps = 0):
 
         elif oper == 0x7000:
             # STORE INDIRECT 
-            data_mem[ar + (instr & 0xff)] = (acc & 0xffff)
+            data_mem[acc + (instr & 0xff)] = (acc & 0xffff)
 
         # case 7: // I/O (ld/st indirect)
         # break
@@ -159,27 +159,27 @@ def simulator(instr_list = None, steps = 0):
 
             elif (brop == 0x4900):
                 # BRZ
-                if (acc_dly == 0):
+                if (acc == 0):
                     pc_next = pc + (instr & 0x00ff)
 
             elif (brop == 0x4a00):
                 # BRNZ
-                if (acc_dly != 0):
+                if (acc != 0):
                     pc_next = pc + (instr & 0x00ff)
 
             elif (brop == 0x4b00):
                 # BRP (branch on positive)
-                if (acc_dly & 0x8000) == 0:
+                if (acc & 0x8000) == 0:
                     pc_next = pc + (instr & 0x00ff)
 
             elif (brop == 0x4c00):
                 # BRN (branch on negative)      
-                if (acc_dly & 0x8000) != 0:
+                if (acc & 0x8000) != 0:
                     pc_next = pc + (instr & 0x00ff)
 
             else:
                 raise ValueError("Invalid Instruction at address " + str(pc) + \
-                    " : " + str(instr))
+                    " : " + str(hex(instr)))
 
         acc = acc & 0xffff 
 
