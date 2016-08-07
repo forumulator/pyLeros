@@ -1,8 +1,11 @@
 from pyleros.codes import codes, dlist
-from pyleros.types import alu_op_type, dec_op_type
+from pyleros.types import alu_op_type, dec_op_type, decSignal
 
 from pyleros import decoder
 from myhdl import *
+
+import pytest
+
 
 
 @block
@@ -16,7 +19,7 @@ def tb_dec_top(args=None):
 	# the high 8 bits of the instruction
 	instr_hi = Signal(intbv(0)[8:])
 
-	dec_signal_list = [Signal(bool(0)) for sig in dlist]
+	dec_signal = decSignal()
 	alu_op = Signal(alu_op_type.NOP)
 
 	@always(delay(10))
@@ -26,7 +29,7 @@ def tb_dec_top(args=None):
 
 
 	# instantiate the decoder
-	decode_inst = decoder.pyleros_decoder(instr_hi, alu_op, dec_signal_list)
+	decode_inst = decoder.pyleros_decoder(instr_hi, alu_op, dec_signal)
 
 	@instance
 	def tbstim():
@@ -44,9 +47,9 @@ def tb_dec_top(args=None):
 			# check for correct decode
 			for cs in dlist:
 				if cs in codes[instr][1]:
-					assert dec_signal_list[int(cs)] == True
+					assert dec_signal.signals[int(cs)] == True
 				else:
-					assert dec_signal_list[int(cs)] == False
+					assert dec_signal.signals[int(cs)] == False
 
 
 			yield delay(33)
@@ -61,9 +64,9 @@ def tb_dec_top(args=None):
 				for cs in dlist:
 
 					if (cs in codes[instr][1]) or (cs == dec_op_type.sel_imm):
-						assert dec_signal_list[int(cs)] == True
+						assert dec_signal.signals[int(cs)] == True
 					else:
-						assert dec_signal_list[int(cs)] == False
+						assert dec_signal.signals[int(cs)] == False
 
 			for ii in range(5):
 				yield clock.posedge

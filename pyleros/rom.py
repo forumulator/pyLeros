@@ -27,20 +27,21 @@ def pyleros_im(rd_addr, rd_data, IM_array = None, debug = False):
         IM_array = define_rom(IM_SIZE, IM_array)
 
     @always_comb
-    def IM_read():
+    def read():
         if __debug__:
             if debug:
-                print("\nReading instr mem at:", rd_addr, ", ", IM_array[rd_addr])
+                print("\nReading instr mem at:", rd_addr)
+                print("Instruction", IM_array[int(rd_addr)])
         rd_data.next = IM_array[int(rd_addr)]
 
-    return IM_read
+    return read
 
 
 
 
 def define_rom(IM_SIZE=1024, rfile = None):
 
-    IM = [intbv(0)[16:] for _ in range(IM_SIZE)]
+    IM = [0 for _ in range(IM_SIZE)]
 
     if rfile:
         if type(rfile) is list:
@@ -63,15 +64,15 @@ def define_rom(IM_SIZE=1024, rfile = None):
 
                         else:
                             try:
-                                instr = intbv(int(line, 2))[16:]
+                                instr = int(line, 2)
                                 IM[addr] = instr
                                 addr += 1
                             except:
                                 raise Exception
 
-                for i in range(addr, IM_SIZE):
+                # for i in range(addr, IM_SIZE):
 
-                    IM[i] = intbv(0x0000)[16:]
+                #     IM[i] = intbv(0x0000)[16:]
 
                 return tuple(IM)
 

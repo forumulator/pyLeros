@@ -32,11 +32,11 @@ def top_block(args=None):
 	
 	# instantiate the rom
 	for i in range(IM_SIZE):
-		instr_array[i] = randrange(2**15) - 2**14
+		instr_array[i] = (randrange(2**15) - 2**14) & 0xffff
 		# if i < 10:
 		# 	print(instr_array[i])
 	
-	im_inst = rom.pyleros_im(clock, reset, rd_addr, rd_data, filename = instr_array)
+	im_inst = rom.pyleros_im(rd_addr, rd_data, IM_array = instr_array)
 	
 
 	@instance

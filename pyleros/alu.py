@@ -30,7 +30,7 @@ def pyleros_alu(alu_op, dec, acc, opd, pre_acc, debug=False):
 
         if __debug__:
             print("inside alu", acc, opd)
-        if not dec.add_sub:
+        if dec.add_sub == 0:
             res_arith.next = intbv(acc + opd)[16:]
             if __debug__:
                 if debug:
@@ -62,16 +62,16 @@ def pyleros_alu(alu_op, dec, acc, opd, pre_acc, debug=False):
     # based on the decoder control signals
     @always_comb
     def acc_mux():
-        if dec.log_add:
+        if dec.log_add == 1:
             # ADD/ SUB
             pre_acc.next = res_arith
 
-        elif dec.shr:
+        elif dec.shr == 1:
             # SHR
             pre_acc.next = intbv(acc >> 1)[16:]
 
-        elif not (alu_op ==  alu_op_type.NOP):
-                pre_acc.next = res_log
+        elif not (alu_op == alu_op_type.NOP):
+            pre_acc.next = res_log
 
 
     return instances()

@@ -63,9 +63,7 @@ def pyleros_decoder(instr_hi, alu_op, out_sig, debug=False):
         # if the instructions are not branch
         if not (ins_ckh == 0x48):
             # the imm. bit, 0
-            out_sig.sel_imm.next = instr_hi[0]
-
-        
+            out_sig.sel_imm.next = instr_hi[0]       
 
         if ins_ckh == 0x00:
             # NOP
@@ -136,6 +134,9 @@ def pyleros_decoder(instr_hi, alu_op, out_sig, debug=False):
             # STORE INDIRECT
             out_sig.indls.next = True
             out_sig.store.next = True
+        else:
+            out_sig.ah_ena.next = False
+            out_sig.al_ena.next = False
 
 
 
@@ -156,6 +157,8 @@ def pyleros_decoder(instr_hi, alu_op, out_sig, debug=False):
             elif instr_hi[3:1] == 0b11:
                 # XOR
                 alu_op.next = alu_op_type.XOR
+            else:
+                alu_op.next = alu_op_type.NOP
 
     return instances()
 

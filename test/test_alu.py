@@ -1,5 +1,5 @@
 from pyleros import alu, decoder, rom
-from pyleros.types import IM_BITS, DM_BITS, alu_op_type, dec_op_type
+from pyleros.types import IM_BITS, DM_BITS, alu_op_type, dec_op_type, decSignal
 from pyleros.codes import codes, dlist, conv_bin
 
 import pytest
@@ -29,18 +29,18 @@ def test_alu():
         # DECODER SIGNALS
         instr_hi = Signal(intbv(0)[8:])
 
-        dec_signal_list = [Signal(bool(0)) for sig in dlist]
+        dec_signal = decSignal()
         alu_op = Signal(alu_op_type.NOP)
 
-        decode_inst = decoder.pyleros_decoder(instr_hi, alu_op, dec_signal_list)
+        decode_inst = decoder.pyleros_decoder(instr_hi, alu_op, dec_signal)
 
         # ALU SIGNALS
-        # dec_signal_list
+        # dec_signal
         alu_acc = Signal(intbv(0)[16:])
         alu_opd = Signal(intbv(0)[16:])
         alu_res = Signal(intbv(0)[16:])
 
-        alu_inst = alu.pyleros_alu(alu_op, dec_signal_list, alu_acc, alu_opd, alu_res)
+        alu_inst = alu.pyleros_alu(alu_op, dec_signal, alu_acc, alu_opd, alu_res)
 
 
         rd_addr = Signal(intbv(0)[IM_BITS:])
@@ -62,7 +62,7 @@ def test_alu():
 
                     bin_list.append(bin_code)
 
-            inst_im = rom.pyleros_im(clock, reset, rd_addr, rd_data, filename=bin_list)
+            inst_im = rom.pyleros_im(rd_addr, rd_data, IM_array=tuple(bin_list))
 
 
 
@@ -189,8 +189,8 @@ def test_alu():
     top_inst.run_sim()
 
     # Along with the instruction memory
-    top_inst = tb_alu_top(True)
-    top_inst.run_sim()
+    # top_inst = tb_alu_top(True)
+    # top_inst.run_sim()
 
 
 if __name__ == "__main__":
