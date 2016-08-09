@@ -16,9 +16,13 @@ class decSignal():
 		self.jal = Signal(bool(0))
 		self.loadh = Signal(bool(0))
 		self.indls = Signal(bool(0))
+		self.signals = [self.al_ena, self.ah_ena, self.log_add, self.add_sub, self.shr, self.sel_imm, \
+						self.store, self.outp, self.inp, self.br_op, self.jal, self.loadh, self.indls]
 
-dec_op_type = enum('al_ena', 'ah_ena', 'log_add', 'add_sub', \
-					'shr', 'sel_imm', 'store', 'outp', 'inp', 'br_op', 'jal', \
+
+
+dec_op_type = enum('al_ena', 'ah_ena', 'log_add', 'add_sub',
+					'shr', 'sel_imm', 'store', 'outp', 'inp', 'br_op', 'jal',
 					'loadh', 'indls')
 
 alu_op_type = enum('NOP', 'LD', 'AND', 'OR', 'XOR')

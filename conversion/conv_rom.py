@@ -11,7 +11,7 @@ def conv_rom():
 	rd_addr = Signal(intbv(0)[IM_BITS:])
 	rd_data = Signal(intbv(0)[16:])
 
-	inst_rom = pyleros_im(rd_addr, rd_data, tuple(instr_list))
+	inst_rom = pyleros_im(rd_addr, rd_data, 'ex_mem.txt')
 
 	inst_rom.convert(hdl = 'VHDL')
 
