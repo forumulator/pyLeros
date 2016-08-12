@@ -1,0 +1,34 @@
+# http://docs.travis-ci.com/user/workers/container-based-infrastructure/
+sudo: false
+
+language: python
+python:
+  - "3.5"
+  - "3.4"
+  # Not tested yet
+  # - "2.7"
+  # - "pypy"
+
+# command to install dependencies
+install:
+  - chmod +x ./scripts/ci/install_myhdl.sh
+  - ./scripts/ci/install_myhdl.sh
+  - chmod +x ./scripts/ci/install_rhea.sh
+  - ./scripts/ci/install_rhea.sh
+  - pip install pytest
+  - pip install coverage
+  - pip install coveralls
+  - pip install .
+
+
+script:
+  - cd test
+  #- coverage run --source=rhea -m pytest --durations=10
+  - py.test --durations=10
+  - coverage run --source pyleros -m py.test
+
+after_success:
+  - coveralls
+
+notifications:
+  email: false

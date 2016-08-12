@@ -8,7 +8,7 @@ DM_SIZE = 1024
 IM, DM = [0 for i in range(IM_SIZE)], [0 for i in range(DM_SIZE)]
 progSize = 0
 
-acc = 0, pc = 0, ar = 0
+acc = 0; pc = 0; ar = 0
 
 # The delay values of the Acc, for the branch and jump instructions
 acc_dly, acc_dly1 = 0, 0
@@ -26,7 +26,7 @@ executedInstr = 0
 # the stored results can be interpreted as required.
 def simulate():
 
-	global progSize, acc, pc, ar, acc_dly, acc_dly1, executedInstr
+	global acc, pc, ar, acc_dly, acc_dly1, executedInstr
 	while True:
 
 		acc_dly = acc_dly1
@@ -47,7 +47,7 @@ def simulate():
 		if ((instr >> 8) & 0x01) != 0:
 			# Use the immediate value
 
-			val = inst & 0xff
+			val = instr & 0xff
 
 			# Sign-extend
 			if (val & 0x80) != 0:
@@ -175,7 +175,6 @@ def simulate():
 			else:
 				raise ValueError("Invalid Instruction at address " + str(pc) + \
 					" : " + str(instr))
-				return 1
 
 		executedInstr += 1
 		acc = acc & 0xff 
@@ -191,7 +190,7 @@ def instr_load(filename):
 	global progSize
 	src_file = open(filename,"rb")
 	if not src_file:
-	i = 1
+		i = 1
 	for line in src_file:
 
 		# Comments and empty lines
@@ -224,7 +223,7 @@ def mem_dump(succ):
 	global progSize, pc, acc
 
 	f = open("mem_dmp", "wb")
-	if succ ==1 True:
+	if succ == True:
 		print("Simulation Successful\n", file = f)
 		print("Program Size = " + progSize + "\n\n", file = f)
 		print("Executed instructions = " + executedInstr + "\n\n", file = f)
@@ -260,16 +259,14 @@ def main():
 	# check for file exist
 	if os.path.exists(filename) == False:
 		raise FileNotFoundError('Source file does not exist')
-		exit(1)
 
 	load_stat = instr_load(filename)
 	if load_stat == 1:
 		raise ValueError('File not in proper format')
-		exit(1)
 
 	else:
 		print("Instruction Memory has " + str(progSize) + " words\n")
-		sim_stat = simluate()
+		sim_stat = simulate()
 		if sim_stat == 0:
 			mem_dump(True)
 
