@@ -1,6 +1,6 @@
 from pyleros import fedec, execute
 from pyleros.codes import dlist, codes
-from pyleros.types import alu_op_type, dec_op_type, IM_BITS, DM_BITS
+from pyleros.types import alu_op_type, dec_op_type, IM_BITS, DM_BITS, decSignal
 from pyleros.sim import sim
 
 import pytest
@@ -25,7 +25,7 @@ class TestClass:
         # DECODER SIGNALS
 
 
-        pipe_dec = [Signal(bool(0)) for sig in dlist]
+        pipe_dec = decSignal()
 
         # Input Signals to Execute
         pipe_imme = Signal(intbv(0)[16:])
@@ -113,7 +113,7 @@ class TestClass:
                 yield clock.posedge
                 yield delay(2)
 
-                for addr in range(1, len(instr_list)):
+                for addr in range(1, len(instr_list) - 1):
 
                     instr = instr_list[addr][0]
                     op = instr_list[addr][1]
@@ -386,7 +386,7 @@ class TestClass:
                         instr_bin = ((codes[ti][0] | True) << 8) | op
                         instr_list.append((ti, op, instr_bin))
                         op = 0x01
-                    elif instr == 'STOREX' or instr == 'STOREX':
+                    elif instr == 'LOADX' or instr == 'STOREX':
                         ti = 'LOAD'
                         op = randrange(128)
                         instr_bin = ((codes[ti][0] | True) << 8) | op

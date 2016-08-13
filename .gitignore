@@ -21,7 +21,6 @@ lib64
 
 # generated files, typically these are not added 
 *.v
-*.vhd
 *.png
 *.vcd
 *.vcd.*

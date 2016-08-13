@@ -1,7 +1,7 @@
 from pyleros import fedec, alu, decoder
 from pyleros.fedec import sign_extend
 from pyleros.codes import dlist, codes, conv_bin
-from pyleros.types import alu_op_type, dec_op_type, IM_BITS, DM_BITS
+from pyleros.types import alu_op_type, dec_op_type, IM_BITS, DM_BITS, decSignal
 
 import pytest
 
@@ -30,7 +30,7 @@ def test_fedec_imm():
                 if (not codes[instr][2]) or (instr == 'NOP') or (instr == 'LOADH') or (instr == 'STORE'):
                     continue
 
-                for trie in range(30):
+                for trie in range(20):
 
                     op1 = randrange(2**15)
                     # 8-bit imm opd
@@ -60,8 +60,8 @@ def test_fedec_imm():
         pipe_pc = Signal(intbv(0)[IM_BITS:])
         fwd_accu = Signal(intbv(0)[16:])
 
-        out_dec = [Signal(bool(0)) for sig in dlist]
-        test_dec = [Signal(bool(0)) for sig in dlist]
+        out_dec = decSignal()
+        test_dec = decSignal()
         alu_op = Signal(alu_op_type.NOP)
         pipe_alu_op = Signal(alu_op_type.NOP)
     
@@ -80,7 +80,7 @@ def test_fedec_imm():
         alu_inst = alu.pyleros_alu(pipe_alu_op, out_dec, alu_acc, alu_opd, alu_res)
 
         fedec_inst = fedec.pyleros_fedec(clock, reset, back_acc, back_dm_data, fwd_accu, pipe_alu_op,
-                                        out_dec, pipe_imme, pipe_dm_addr, pipe_pc, filename=bin_list)
+                                        out_dec, pipe_imme, pipe_dm_addr, pipe_pc, filename=bin_list, debug = True)
     
 
         @always(delay(100))
@@ -104,11 +104,11 @@ def test_fedec_imm():
             # only the instuction is updated, and the 
             # decoder, the output from fedec doesn't change 
             # till after the second cycle.
+            
             yield clock.posedge
             yield delay(1)
-
             ninstr = len(instr_list)
-            for addr in range(1,ninstr):
+            for addr in range(1,ninstr - 1):
 
                 # if addr == 10:
                 #   raise StopSimulation
@@ -120,21 +120,20 @@ def test_fedec_imm():
 
                 yield clock.posedge
                 yield delay(1)
+                # yield clock.posedge
+                yield delay(3)
                 
 
                 for sig in dlist:
-                    print(str(sig))
-                    assert test_dec[int(sig)] == out_dec[int(sig)]
+                    assert test_dec.signals[int(sig)] == out_dec.signals[int(sig)]
 
                 print("Cmp Imm", op2, pipe_imme)
                 alu_acc.next = op1
                 alu_opd.next = pipe_imme
-                yield delay(20)
-                print("alu ops", op1, alu_acc, pipe_imme, alu_opd)
-                print("alu types", type(op1), type(alu_acc), type(pipe_imme), type(alu_opd))
-                print(out_dec[int(dec_op_type.add_sub)], out_dec[int(dec_op_type.log_add)])
-                for i in range(2):
-                    yield delay(33)
+                yield delay(4)
+                # print("alu ops", op1, alu_acc, pipe_imme, alu_opd)
+                # print("alu types", type(op1), type(alu_acc), type(pipe_imme), type(alu_opd))
+                # print(out_dec[int(dec_op_type.add_sub)], out_dec[int(dec_op_type.log_add)])
 
                 #check for correct result
                 if instr == 'NOP':

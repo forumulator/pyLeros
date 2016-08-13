@@ -1,6 +1,6 @@
 from pyleros import decoder, execute
 from pyleros.codes import dlist, codes
-from pyleros.types import alu_op_type, dec_op_type, IM_BITS, DM_BITS
+from pyleros.types import alu_op_type, dec_op_type, IM_BITS, DM_BITS, decSignal
 
 import pytest
 
@@ -25,7 +25,7 @@ class TestClass:
         # DECODER SIGNALS
         instr_hi = Signal(intbv(0)[8:])
 
-        out_list = [Signal(bool(0)) for sig in dlist]
+        pipe_dec_sig = decSignal()
         pipe_alu_op = Signal(alu_op_type.NOP)
 
         # Input Signals to Execute
@@ -38,11 +38,11 @@ class TestClass:
 
         fwd_accu = Signal(intbv(0)[16:])
 
-        self.signals = clock, reset, instr_hi, out_list, in_imm, \
+        self.signals = clock, reset, instr_hi, pipe_dec_sig, in_imm, \
             in_dm_addr, in_pc, out_acc, out_dm_data
 
-        self.decode_inst = decoder.pyleros_decoder(instr_hi, pipe_alu_op, out_list)
-        self.exec_inst = execute.pyleros_exec(clock, reset, pipe_alu_op, out_list, in_imm, in_dm_addr, in_pc, \
+        self.decode_inst = decoder.pyleros_decoder(instr_hi, pipe_alu_op, pipe_dec_sig)
+        self.exec_inst = execute.pyleros_exec(clock, reset, pipe_alu_op, pipe_dec_sig, in_imm, in_dm_addr, in_pc, \
                                             out_acc, out_dm_data, fwd_accu, True)
 
         return self.decode_inst, self.exec_inst
@@ -76,7 +76,7 @@ class TestClass:
 
             """
             # Initialise signals and dut's
-            clock, reset, instr_hi, out_list, in_imm, \
+            clock, reset, instr_hi, pipe_dec_sig, in_imm, \
                 in_dm_addr, in_pc, out_acc, out_dm_data = self.signals
             inst_blks = self.decode_inst, self.exec_inst
             
@@ -133,7 +133,7 @@ class TestClass:
 
             """
             # Initialise signals and dut's
-            clock, reset, instr_hi, out_list, in_imm, \
+            clock, reset, instr_hi, pipe_dec_sig, in_imm, \
                 in_dm_addr, in_pc, out_acc, out_dm_data = self.signals
             inst_blks = self.decode_inst, self.exec_inst
 
@@ -196,7 +196,7 @@ class TestClass:
 
             """
             # Initialise signals and dut's
-            clock, reset, instr_hi, out_list, in_imm, \
+            clock, reset, instr_hi, pipe_dec_sig, in_imm, \
                 in_dm_addr, in_pc, out_acc, out_dm_data = self.signals
             inst_blks = self.decode_inst, self.exec_inst
 
