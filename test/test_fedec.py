@@ -105,8 +105,6 @@ def test_fedec_imm():
             # decoder, the output from fedec doesn't change 
             # till after the second cycle.
             
-            yield clock.posedge
-            yield delay(1)
             ninstr = len(instr_list)
             for addr in range(1,ninstr - 1):
 
@@ -119,8 +117,7 @@ def test_fedec_imm():
                 instr_hi.next = (codes[instr][0] | 0x01)
 
                 yield clock.posedge
-                yield delay(1)
-                # yield clock.posedge
+                
                 yield delay(3)
                 
 
@@ -130,7 +127,7 @@ def test_fedec_imm():
                 print("Cmp Imm", op2, pipe_imme)
                 alu_acc.next = op1
                 alu_opd.next = pipe_imme
-                yield delay(4)
+                yield delay(3)
                 # print("alu ops", op1, alu_acc, pipe_imme, alu_opd)
                 # print("alu types", type(op1), type(alu_acc), type(pipe_imme), type(alu_opd))
                 # print(out_dec[int(dec_op_type.add_sub)], out_dec[int(dec_op_type.log_add)])

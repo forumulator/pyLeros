@@ -110,9 +110,6 @@ class TestClass:
                 acc = 0
                 # yield delay(11) # or yield clock.posedge, same result.
                 # yield clock.posedge
-                yield clock.posedge
-                yield delay(2)
-
                 for addr in range(1, len(instr_list) - 1):
 
                     instr = instr_list[addr][0]
@@ -121,7 +118,7 @@ class TestClass:
 
                     state = simu_inst.__next__()
                     yield clock.posedge
-                    yield delay(3)
+                    yield delay(4)
                     assert state[0] == back_acc
 
                     
@@ -220,19 +217,16 @@ class TestClass:
             def tbstim():
                 # local accumulator var
                 acc = 0
-                # yield delay(11) # or yield clock.posedge, same result.
-                yield clock.posedge
-                yield delay(1)
-
                 addr = 0
+
+                yield clock.posedge
+                yield delay(14)
                 for addr in range(1, 20):
                     state = simu_inst.__next__()
                     instr = instr_list[addr][0]
                     op = instr_list[addr][1]
                     instr_bin = instr_list[addr][2]
-                    # print("Bf", addr, back_acc)
                     yield clock.posedge
-                    yield delay(1)
                     assert state[0] == back_acc
                     # print("Af", addr,  back_acc)
                     # print("This is iteration " + str(addr))
@@ -242,8 +236,6 @@ class TestClass:
                     elif instr == 'STORE':
                         acc == back_acc
 
-                yield clock.posedge
-                yield delay(1)
                 for addr in range(10):
                     mod_addr = addr + 20
                     instr = instr_list[mod_addr][0]
@@ -252,11 +244,13 @@ class TestClass:
 
                     state = simu_inst.__next__()
                     yield clock.posedge
-                    yield delay(1)
                     assert state[0] == back_acc
 
                     if instr == 'LOAD':
                         assert addr == back_acc
+
+                yield delay(10)
+                assert state[0] == back_acc
 
                 raise StopSimulation
 
@@ -288,22 +282,20 @@ class TestClass:
                 # list of instructions, that finally yield the value
                 # 37
                 i_list = [
-                ('NOP', 0, False),
-                ('ADD', 10, True),
-                ('SUB', 5, True),
-                ('XOR', 13, True),
-                ('STORE', 50, False),
-                ('ADD', 15, True),
-                ('STORE', 51, False),
-                ('XOR', 48, True),
-                ('LOAD', 27, True),
-                ('JAL', 1, False),
+                ('NOP', 0, False), # acc 0
+                ('ADD', 10, True),  # acc 10
+                ('SUB', 5, True),   # acc 5
+                ('XOR', 13, True),  # acc 8
+                ('STORE', 50, False), # dm[50] = 8
+                ('ADD', 15, True),  # acc 23
+                ('STORE', 51, False),  # dm[51] = 23 
+                ('XOR', 48, True),  # acc = 39
+                ('BRP', 4, False)   #
                 ]
                 
-                for i in range(10, 27):
+                for i in range(9, 27):
                     i_list.append(('NOP', 0, False))
-                i_list.append(('LOAD', 51, False))
-                i_list.append(('LOADX', 27, False))
+                i_list.append(('LOAD', 50, False))
                 i_list.append(('XOR', 45, True))
 
                 for i in i_list:
@@ -340,11 +332,16 @@ class TestClass:
                 yield delay(1)
                 yield clock.posedge
                 addr = 0
-                for addr in range(15):
+                for addr in range(7):
                     # simu_inst.__next__()
                     state = simu_inst.__next__()
-                    yield clock.posedge
+                    # if not addr == 6:
+                    # else:
+                    #     yield clock.posedge
+                        # yield delay(1)
+                        # pass
                     assert state[0] == back_acc
+                    yield clock.posedge
 
                 assert back_acc == 37
 
@@ -356,7 +353,7 @@ class TestClass:
         inst.run_sim()
 
 
-
+    @pytest.mark.skip
     def test_random(self):
 
         @block

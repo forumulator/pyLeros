@@ -45,6 +45,7 @@ def define_rom(IM_SIZE=1024, rfile = None):
 
     if rfile:
         if type(rfile) is list:
+            rfile.extend([0 for i in range(5)])
             return tuple(rfile)
 
         else:
@@ -73,7 +74,7 @@ def define_rom(IM_SIZE=1024, rfile = None):
                 # for i in range(addr, IM_SIZE):
 
                 #     IM[i] = intbv(0x0000)[16:]
-
+                IM.extend([0 for _ in range(5)])
                 return tuple(IM)
 
 

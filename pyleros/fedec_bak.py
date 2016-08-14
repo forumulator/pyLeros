@@ -1,6 +1,6 @@
 import myhdl
 from myhdl import instances, block, Signal, intbv, \
-                    always_comb, always_seq
+                    always_comb, always_seq, ConcatSignal
 
 from pyleros.types import alu_op_type, dec_op_type, IM_BITS, DM_BITS, decSignal
 from pyleros.codes import dlist
@@ -37,9 +37,12 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu, pipe_alu_op,
                 of the instruction, pass on to execute stage
         pipe_dm_addr: OUT DM read addr, pipeline register
         pipe_pc: OUT the value of PC, pipeline register
+
     Parameters:
+
         filename: Name of the file or a list containing the instructions
         debug: Debugging mode, the processor prints various error messages
+
     """
 
     im_addr = Signal(intbv(0)[IM_BITS:])
@@ -48,8 +51,8 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu, pipe_alu_op,
     instr_hi = Signal(intbv(0)[8:])
 
     branch_en = Signal(bool(0))
-    acc_z = True
 
+    acc_z = True
     nxt_dm_addr = Signal(intbv(0)[DM_BITS:])
     # Since the init of PC causes the first addition
     # automatically, the first Instr is read from
@@ -59,9 +62,9 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu, pipe_alu_op,
     pc_next = Signal(intbv(0)[IM_BITS:])
     pc_add = Signal(intbv(0)[IM_BITS:])
     pc_op = Signal(intbv(0)[16:])
-
     decode = decSignal()
     alu_op = Signal(alu_op_type.NOP)
+
     # Instantiate the instruction memory
     im_inst = rom.pyleros_im(im_addr, instr, filename, debug)
 
@@ -71,8 +74,9 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu, pipe_alu_op,
     @always_comb
     def sync_sig():
 
-        if debug:
-            print("hi_bits:",instr[16:8])
+        # if __debug__:
+        #     if debug:
+        #         print("hi_bits:",instr[16:8])
 
         instr_hi.next = instr[16:8]
         im_addr.next = pc_next
@@ -86,19 +90,23 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu, pipe_alu_op,
         if decode.indls:
             # Indirect Addressing(with offset) 
             # for indirect load/store
-            if debug:
-                print("offset address: " + str(int(offset_addr)))
+            # if __debug__:
+            #     if debug:
+            #         print("offset address: " + str(int(offset_addr)))
+
             nxt_dm_addr.next = offset_addr[DM_BITS:] 
 
         else:
             # Direct Addressing
-            if debug:
-                print("direct address: " + str(int(instr[DM_BITS:])))
+            # if __debug__:
+            #     if debug:
+            #         print("direct address: " + str(int(instr[DM_BITS:])))
             nxt_dm_addr.next = instr[DM_BITS:]
 
     @always_comb
     def branch_sel():
 
+        
         # if not reset == reset.active:
         if fwd_accu == 0:
             acc_z = True
@@ -143,17 +151,15 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu, pipe_alu_op,
                 else:
                     branch_en.next = False
 
-    def print_func(pr_str):
-        print(pr_str, pc, pc_op, instr, back_acc, pc_add, instr)
-
     # For selection of next PC address
     @always_comb
     def pc_addr():
 
-        if debug:
-            print_func('start')
+        # if __debug__:
+        #     if debug:
+        #         print('start', pc, pc_op, instr, back_acc, pc_add, instr)
 
-        if branch_en:
+        if branch_en == 1:
             # Sign extend the low 8 bits
             # of instruction
             pc_op.next = sign_extend(instr[8:], IM_BITS)
@@ -161,13 +167,10 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu, pipe_alu_op,
         else:
             pc_op.next = 1
 
-        if debug:
-            print_func1()
+        # if __debug__:
+        #     if debug:
+        #         print(pc, pc_op)
         
-    def print_func1():
-        print(pc, pc_op)
-
-
     @always_comb
     def pc_next_set():
         pc_add.next = pc + pc_op
@@ -182,8 +185,10 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu, pipe_alu_op,
 
         else:
             pc_next.next = pc_add
-        if debug:
-            print_func('end')
+
+        # if __debug__:
+        #     if debug:
+        #         print('end', pc, pc_op, instr, back_acc, pc_add, instr)
     
     @always_seq(clk.posedge, reset)
     def intr_pipe():
@@ -191,34 +196,39 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu, pipe_alu_op,
         # if decode.add_sub == True:
         # Set the immediate value
         if decode.loadh:
-            pipe_imme.next = instr[8:] << 8
+            # if __debug__:
+            pipe_imme.next = intbv(0)[16:]
+            pipe_imme.next[16:8] = instr[8:]
+            pipe_imme.next[8:0] = intbv(0)[8:]
         else:
             pipe_imme.next = instr[8:]
 
         pipe_pc.next = pc_next 
 
-        for sig in dlist:
-            pipe_dec.signals[int(sig)].next = decode.signals[int(sig)]
+        pipe_dec.al_ena.next = decode.al_ena
+        pipe_dec.ah_ena.next = decode.ah_ena
+        pipe_dec.log_add.next = decode.log_add
+        pipe_dec.add_sub.next = decode.add_sub
+        pipe_dec.shr.next = decode.shr
+        pipe_dec.sel_imm.next = decode.sel_imm
+        pipe_dec.store.next = decode.store
+        pipe_dec.outp.next = decode.outp
+        pipe_dec.inp.next = decode.inp
+        pipe_dec.br_op.next = decode.br_op
+        pipe_dec.jal.next = decode.jal
+        pipe_dec.loadh.next = decode.loadh
+        pipe_dec.indls.next = decode.indls
 
         pipe_alu_op.next = alu_op
 
         pipe_dm_addr.next = nxt_dm_addr
-        pipe_alu_op.next = alu_op.next
 
         # else:
         #   immr(7 downto 0) <= imout.data(7 downto 0);
         #   immr(15 downto 0) <= (others => '0');       
         # Set the control signals for the
         # pipeline register
-        
-
-    @always_seq(clk.posedge, reset=reset)
-    def other_pipe():
-
-        pc.next = pc_next
-
-        
-
+        pc.next = pc_next        
 
     return instances()
 
@@ -232,7 +242,7 @@ def sign_extend(num, bits = 0):
         sign_bit = int(num[len_n - 1])
         num = ((sign_bit << len_n) * -1) + int(num[len_n:])
         if bits != 0:
-            if -2**(bits-1) <= num <= (2**(bits-1) - 1) :
+            if -2**(bits-1) <=  num <= (2**(bits-1) - 1) :
                 num = num & ((1 << bits) - 1)
             else:
                 raise ValueError("Value " + str(num) + " too larg e to sign extend")

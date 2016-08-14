@@ -15,6 +15,7 @@ def pyleros_exec(clk, reset, pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pip
     in this stage. The main function is to execute the ALU
     operation, read the data memory, update the accumulator, 
     and feed back teh results to fedec
+
     Arguments (ports):
         clk: IN Clock signal
         reset: IN Async reset signal
@@ -26,6 +27,7 @@ def pyleros_exec(clk, reset, pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pip
         back_acc: OUT Value of the acc to send back to fedec.
         back_dm_data: OUT The data read from the DM, back to fedec for
             indls
+
     Parameters:
         debug: Debugging mode, the processor prints various error messages
         
@@ -68,7 +70,7 @@ def pyleros_exec(clk, reset, pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pip
 
         # if not reset:
         # Mux for Data Memory read/ Immediate value retrieve
-        if pipe_dec.sel_imm:
+        if pipe_dec.sel_imm == True:
             # Immediate
             opd.next = pipe_imme
 
@@ -81,7 +83,7 @@ def pyleros_exec(clk, reset, pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pip
     def mux_write_dm():
   
         # print(acc)
-        if pipe_dec.store:
+        if pipe_dec.store == True:
             dm_wr_en.next = True
         else:
             dm_wr_en.next = False
@@ -90,12 +92,9 @@ def pyleros_exec(clk, reset, pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pip
 
         # MUX for selecting the data to be written
         # in case of jal
-        if pipe_dec.jal:
-            temp = intbv(0)[16:]
-            temp[IM_BITS:0] = pc_dly
-            temp[16:IM_BITS] = 0
-
-            dm_wr_data.next = temp
+        if pipe_dec.jal == True:
+            dm_wr_data.next = intbv(0)[16:]
+            dm_wr_data.next[IM_BITS:0] = pc_dly
 
         else:
             dm_wr_data.next = acc
@@ -113,17 +112,23 @@ def pyleros_exec(clk, reset, pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pip
 
         # Write the accumulator based on the 
         # high and low enable write control signals
-        if pipe_dec.al_ena and pipe_dec.ah_ena:
-            if debug:
-                print("Next value of the accumulator " + str(int(pre_accu)))
-            acc.next = pre_accu
+        acc.next = acc.val
+        if pipe_dec.ah_ena == True:
+            acc.next[16:8] = pre_accu[16:8]
+        if pipe_dec.al_ena == True:
+            acc.next[8:0] = pre_accu[8:0]
+            if __debug__:
+                if debug:
+                    print("Next value of the accumulator " + str(int(pre_accu)))
 
     @always_comb
     def fwd_acc_set():
 
-        if pipe_dec.al_ena and pipe_dec.ah_ena:
-            fwd_accu.next = pre_accu
-            back_acc.next = pre_accu
-
+        if pipe_dec.ah_ena == True:
+            back_acc.next[16:8] = pre_accu[16:8]
+            fwd_accu.next[16:8] = pre_accu[16:8]
+        if pipe_dec.al_ena == True:
+            back_acc.next[8:0] = pre_accu[8:0]
+            fwd_accu.next[8:0] = pre_accu[8:0]
        
     return instances()
