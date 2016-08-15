@@ -28,6 +28,10 @@ lib64
 vcd
 *.log
 
+# backup files
+*.bk.py
+
+
 # Installer logs
 pip-log.txt
 

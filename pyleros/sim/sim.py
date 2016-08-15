@@ -2,7 +2,7 @@ import sys
 import os
 
 DM_SIZE = 1024
-IM_SIZE = 1024
+IM_SIZE = 512
 
 def define_rom(instr_list=None):
 
@@ -21,7 +21,8 @@ def simulator(instr_list = None, steps = 0):
 
     # Defining the registers and memory
     acc = 0
-    instr_mem, prog_size = define_rom(instr_list)
+    instr_mem = instr_list
+    prog_size = len(instr_list)
     # Because the execution of the processor
     # also starts from the fist instruction
     pc = 1
@@ -31,7 +32,6 @@ def simulator(instr_list = None, steps = 0):
     data_mem = [0 for i in range(DM_SIZE)]
     rd_data = 0
     back_rd_data = 0
-
     # The main sim loop
     while True:
 
@@ -44,6 +44,7 @@ def simulator(instr_list = None, steps = 0):
 
         step += 1
         instr = instr_mem[pc]
+        print(pc)
 
         val = 0 
 
@@ -184,6 +185,8 @@ def simulator(instr_list = None, steps = 0):
         acc = acc & 0xffff 
 
         pc = pc_next
+        if not pc < IM_SIZE:
+            raise ValueError("Instr mem index out of range", pc, ">", IM_SIZE)
         back_rd_data = rd_data
 
         yield (acc, pc, rd_data, instr, step, val)

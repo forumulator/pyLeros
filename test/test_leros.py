@@ -81,6 +81,7 @@ class TestClass:
                     instr_bin = codes[instr][0] | 0x01
                     instr_bin = (instr_bin << 8) | intbv(op)[8:]
                     instr_list.append((instr, op, instr_bin))
+                instr_list[0] = ('NOP', 0, 0x0000)
 
                 for i in range(len(instr_list)):
                     bin_list.append(instr_list[i][2])
@@ -109,7 +110,9 @@ class TestClass:
                 # local accumulator var
                 acc = 0
                 # yield delay(11) # or yield clock.posedge, same result.
-                # yield clock.posedge
+                yield clock.posedge
+                yield clock.posedge
+                
                 for addr in range(1, len(instr_list) - 1):
 
                     instr = instr_list[addr][0]
@@ -117,9 +120,10 @@ class TestClass:
                     instr_bin = instr_list[addr][2]
 
                     state = simu_inst.__next__()
-                    yield clock.posedge
-                    yield delay(4)
+                    yield delay(7)
                     assert state[0] == back_acc
+                    yield clock.posedge
+
 
                     
                     if addr == 0:
@@ -220,7 +224,8 @@ class TestClass:
                 addr = 0
 
                 yield clock.posedge
-                yield delay(14)
+                yield clock.posedge
+                yield delay(3)
                 for addr in range(1, 20):
                     state = simu_inst.__next__()
                     instr = instr_list[addr][0]
@@ -290,12 +295,13 @@ class TestClass:
                 ('ADD', 15, True),  # acc 23
                 ('STORE', 51, False),  # dm[51] = 23 
                 ('XOR', 48, True),  # acc = 39
-                ('BRP', 4, False)   #
+                ('BRP', 19, False)   #
                 ]
                 
                 for i in range(9, 27):
                     i_list.append(('NOP', 0, False))
-                i_list.append(('LOAD', 50, False))
+                i_list.append(('LOAD', 51, False))
+                i_list.append(('LOADX', 27, False))
                 i_list.append(('XOR', 45, True))
 
                 for i in i_list:
@@ -332,16 +338,17 @@ class TestClass:
                 yield delay(1)
                 yield clock.posedge
                 addr = 0
-                for addr in range(7):
+                for addr in range(12):
                     # simu_inst.__next__()
                     state = simu_inst.__next__()
+                    yield clock.posedge
                     # if not addr == 6:
                     # else:
                     #     yield clock.posedge
                         # yield delay(1)
                         # pass
                     assert state[0] == back_acc
-                    yield clock.posedge
+                    
 
                 assert back_acc == 37
 
@@ -353,7 +360,7 @@ class TestClass:
         inst.run_sim()
 
 
-    @pytest.mark.skip
+    # @pytest.mark.skip
     def test_random(self):
 
         @block
@@ -366,15 +373,31 @@ class TestClass:
                 """Create a list of random instructions
                 
                 """
-                instr_list, bin_list = [], []
+                instr_list = [0 for i in range(256)]
+                bin_list = [0 for i in range(256)]
                 op = 0
                 ibit = 1
 
                 tup = tuple(['NOP', 'ADD', 'SUB', 'OR', 'AND', 'XOR', 'SHR', 'LOAD', 'STORE', 'LOADX', 'STOREX', 'BRANCH', 'BRZ', 'BRNZ', 'BRP', 'BRN', 'JAL'])
                 num = len(tup)
 
-                instr_list.append(('NOP', 0, 0))
-                for addr in range(1, 256):
+                instr_list[0] = ('NOP', 0, 0x0000)
+                bin_list[0] = 0x0000
+                instr_list[1] = ('ADD', 10, 0x0910)
+                bin_list[1] = 0x0910
+                addr = 1
+                isim = sim.simulator(bin_list) 
+                for i in range(1, 250):
+                    try:
+                        cst = isim.__next__()
+                        
+                    except ValueError:
+                        instr_list[addr] = ('NOP', 0, 0x0000)
+                        bin_list[addr] = 0x0000
+                        addr -= 1
+                        break
+
+                    addr += 1
                     ind = randrange(num)
                     instr = tup[ind]
                     if instr == 'JAL':
@@ -393,7 +416,7 @@ class TestClass:
                         if ind < 9:
                             op = randrange(2**8)
                         else:
-                            op = randrange(5)
+                            op = randrange(10)
 
                     if codes[instr][2]:
                         ibit = randrange(2)
@@ -401,14 +424,12 @@ class TestClass:
                         ibit = 0
 
                     instr_bin = ((codes[instr][0] | ibit) << 8) | op
-                    instr_list.append((instr, op, instr_bin))
+                    instr_list[addr] = (instr, op, instr_bin)
+                    bin_list[addr]= instr_bin
+                
+                return instr_list, bin_list, addr
 
-                for i in range(len(instr_list)):
-                    bin_list.append(instr_list[i][2])
-
-                return instr_list, bin_list
-
-            instr_list, bin_list = create_instr()
+            instr_list, bin_list, size = create_instr()
 
             # Initialise signals and dut's
             clock, reset, pipe_dec, pipe_imme, \
@@ -427,16 +448,14 @@ class TestClass:
             def tbstim():
                 # local accumulator var
                 acc = 0
-                # yield delay(11) # or yield clock.posedge, same result.
                 yield clock.posedge
-                yield delay(1)
                 yield clock.posedge
                 addr = 0
-                for addr in range(255):
+                for addr in range(size - 5):
 
                     instr = instr_list[addr + 1][0]
                     op = instr_list[addr + 1][1]
-
+                    print(instr, op, back_acc, "PRE EXECUTION--------------------------------------------------------------")
                     # simu_inst.__next__()
                     state = simu_inst.__next__()
                     yield clock.posedge
