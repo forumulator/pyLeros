@@ -360,7 +360,7 @@ class TestClass:
         inst.run_sim()
 
 
-    # @pytest.mark.skip
+    @pytest.mark.skip
     def test_random(self):
 
         @block
@@ -388,10 +388,13 @@ class TestClass:
                 addr = 1
                 isim = sim.simulator(bin_list) 
                 for i in range(1, 250):
-                    try:
-                        cst = isim.__next__()
+                    def set_list(tup, addr):
+                        instr_list[addr] = tup
+                        bin_list[addr] = tup[2]
+                    
+                    cst = isim.__next__()
                         
-                    except ValueError:
+                    if cst[1] > 255:
                         instr_list[addr] = ('NOP', 0, 0x0000)
                         bin_list[addr] = 0x0000
                         addr -= 1
@@ -404,13 +407,17 @@ class TestClass:
                         ti = 'LOAD'
                         op = randrange(256)
                         instr_bin = ((codes[ti][0] | True) << 8) | op
-                        instr_list.append((ti, op, instr_bin))
+                        tup1 = (ti, op, instr_bin)
+                        set_list(tup1, addr)
+                        cst = isim.__next__()
                         op = 0x01
                     elif instr == 'LOADX' or instr == 'STOREX':
                         ti = 'LOAD'
                         op = randrange(128)
                         instr_bin = ((codes[ti][0] | True) << 8) | op
-                        instr_list.append((ti, op, instr_bin))
+                        tup1 = (ti, op, instr_bin)
+                        set_list(tup1, addr)
+                        cst = isim.__next__()
                         op = randrange(128)
                     else:
                         if ind < 9:
@@ -451,7 +458,7 @@ class TestClass:
                 yield clock.posedge
                 yield clock.posedge
                 addr = 0
-                for addr in range(size - 5):
+                for addr in range(int(size / 2)):
 
                     instr = instr_list[addr + 1][0]
                     op = instr_list[addr + 1][1]

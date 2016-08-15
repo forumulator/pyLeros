@@ -185,8 +185,7 @@ def simulator(instr_list = None, steps = 0):
         acc = acc & 0xffff 
 
         pc = pc_next
-        if not pc < IM_SIZE:
-            raise ValueError("Instr mem index out of range", pc, ">", IM_SIZE)
+        
         back_rd_data = rd_data
 
         yield (acc, pc, rd_data, instr, step, val)
