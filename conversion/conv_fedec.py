@@ -24,7 +24,7 @@ def conv_fedec():
 	fedec_inst = pyleros_fedec(clock, reset, back_acc, back_dm_data, fwd_accu, \
 	                pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc, filename='ex_mem.txt')
 
-	fedec_inst.convert(hdl = 'VHDL')
+	fedec_inst.convert(hdl = 'VHDL', path = 'generated/')
 
 
 
