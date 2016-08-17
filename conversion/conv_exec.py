@@ -1,7 +1,8 @@
 from myhdl import Signal, intbv, ResetSignal
 from pyleros.execute import pyleros_exec
 
-from pyleros.types import decSignal, IM_BITS, DM_BITS, alu_op_type
+from conversion_info import CONVERSION_PATH as PATH
+from pyleros.types import decSignal, IM_BITS, DM_BITS, alu_op_type, inpSignal
 
 def conv_exec():
 
@@ -20,10 +21,11 @@ def conv_exec():
 
 	fwd_accu = Signal(intbv(0)[16:])
 	pipe_alu_op = Signal(alu_op_type.NOP)
+	ioin = inpSignal()
 
 	exec_inst = pyleros_exec(clock, reset, pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc, \
-                                        back_acc, back_dm_data, fwd_accu)
-	exec_inst.convert(hdl = 'VHDL')
+                                        back_acc, back_dm_data, fwd_accu, ioin)
+	exec_inst.convert(hdl = 'VHDL', path = PATH)
 
 
 

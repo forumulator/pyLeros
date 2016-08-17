@@ -1,6 +1,7 @@
 from myhdl import Signal, intbv
 from pyleros.alu import pyleros_alu
-from pyleros.types import decSignal, alu_op_type
+from pyleros.types import decSignal, alu_op_type, inpSignal
+from conversion_info import CONVERSION_PATH as PATH
 
 
 
@@ -11,9 +12,10 @@ def conv_alu():
 	acc = Signal(intbv(0)[16:])
 	pre_acc = Signal(intbv(0)[16:])
 	opd = Signal(intbv(0)[16:])
+	ioin = inpSignal()
 
-	inst_alu = pyleros_alu(alu_op, dec_sig, acc, opd, pre_acc)
-	inst_alu.convert(hdl = 'VHDL')
+	inst_alu = pyleros_alu(alu_op, dec_sig, acc, opd, pre_acc, ioin)
+	inst_alu.convert(hdl = 'VHDL', path = PATH)
 
 
 

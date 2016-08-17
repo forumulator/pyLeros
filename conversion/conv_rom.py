@@ -1,5 +1,6 @@
 from myhdl import *
 from pyleros.rom import *
+from conversion_info import CONVERSION_PATH, ROM_PATH
 from pyleros.types import IM_BITS
 
 
@@ -11,9 +12,9 @@ def conv_rom():
     rd_addr = Signal(intbv(0)[IM_BITS:])
     rd_data = Signal(intbv(0)[16:])
 
-    inst_rom = pyleros_im(rd_addr, rd_data, 'ex_mem.txt')
+    inst_rom = pyleros_im(rd_addr, rd_data, ROM_PATH + 'sum_n.rom')
 
-    inst_rom.convert(hdl = 'VHDL')
+    inst_rom.convert(hdl = 'VHDL', path = CONVERSION_PATH)
 
 
 
@@ -22,13 +23,13 @@ if __name__ == "__main__":
     conv_rom()
 
     # Example of ROM conversion
-    @block
-    def rom(dout, addr, CONTENT):
-        @always_comb
-        def read():
-            dout.next = CONTENT[int(addr)]
+    # @block
+    # def rom(dout, addr, CONTENT):
+    #     @always_comb
+    #     def read():
+    #         dout.next = CONTENT[int(addr)]
 
-        return read
+    #     return read
 
-    in_rm = rom(Signal(bool(0)), Signal(intbv(0)[16:]), tuple([False for i in range(256)]))
-    in_rm.convert(hdl = 'VHDL')
+    # in_rm = rom(Signal(bool(0)), Signal(intbv(0)[16:]), tuple([False for i in range(256)]))
+    # in_rm.convert(hdl = 'VHDL', path = PATH)

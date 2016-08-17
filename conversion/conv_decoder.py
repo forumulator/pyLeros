@@ -1,6 +1,7 @@
 from myhdl import Signal, intbv
 from pyleros.decoder import pyleros_decoder
 from pyleros.types import decSignal, alu_op_type
+from conversion_info import CONVERSION_PATH as PATH
 
 
 def conv_decoder():
@@ -11,7 +12,7 @@ def conv_decoder():
 
 	inst_dec = pyleros_decoder(instr_hi, alu_op, dec_sig)
 
-	inst_dec.convert(hdl = 'VHDL')
+	inst_dec.convert(hdl = 'VHDL', path = PATH)
 
 
 

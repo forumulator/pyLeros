@@ -2,6 +2,8 @@ from myhdl import Signal, intbv, ResetSignal
 from pyleros.fedec import pyleros_fedec
 
 from pyleros.types import decSignal, IM_BITS, DM_BITS, alu_op_type
+from conversion_info import CONVERSION_PATH, ROM_PATH
+
 
 def conv_fedec():
 
@@ -22,9 +24,9 @@ def conv_fedec():
 	pipe_alu_op = Signal(alu_op_type.NOP)
 
 	fedec_inst = pyleros_fedec(clock, reset, back_acc, back_dm_data, fwd_accu, \
-	                pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc, filename='ex_mem.txt')
+	                pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc, filename=ROM_PATH + 'sum_n.rom')
 
-	fedec_inst.convert(hdl = 'VHDL', path = 'generated/')
+	fedec_inst.convert(hdl = 'VHDL', path = CONVERSION_PATH)
 
 
 

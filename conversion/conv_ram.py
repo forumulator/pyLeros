@@ -1,6 +1,7 @@
 from myhdl import Signal, ResetSignal
 from pyleros.ram import *
 from pyleros.types import DM_BITS
+from conversion_info import CONVERSION_PATH as PATH
 
 def conv_ram():
 	# Siggals
@@ -14,7 +15,7 @@ def conv_ram():
 
 
 	inst_ram = pyleros_dm(clk, reset, rd_addr, wr_addr, wr_data, wr_en, rd_data)
-	inst_ram.convert(hdl = 'VHDL')
+	inst_ram.convert(hdl = 'VHDL', path = PATH)
 
 
 
