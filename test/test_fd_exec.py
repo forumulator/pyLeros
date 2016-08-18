@@ -363,7 +363,7 @@ class TestClass:
         inst.run_sim()
 
 
-    @pytest.mark.skip
+    @pytest.mark.xfail
     def test_random(self):
 
         @block

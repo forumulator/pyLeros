@@ -58,12 +58,8 @@ class TestProcessor:
             clock, reset, ioin, ioout = self.signals
             proc_inst = self.setup_proc(fname)
 
-            # the alu is run once on intialization anyway, and the value
-            # is set to zero(0 + 0)
             @instance
             def tbstim():
-                # local accumulator var
-                # yield delay(11) # or yield clock.posedge, same result.
                 n = 15
                 num_list = [n]
                 num_list.extend([randrange(2**4) for i in range(n)])
@@ -93,4 +89,61 @@ class TestProcessor:
         test_files = ['io_test.rom', 'iot_2.rom', 'io_br.rom', 'jal.rom', 'sum_n.rom']
         for fname in test_files:
             inst = tb_addnio(path + fname)
-            inst.run_sim()   
+            inst.run_sim()
+
+
+
+    def test_sort(self):
+
+        @block
+        def tb_sort(fname=None):
+            """Test bubble sort
+
+            """
+
+            clock, reset, ioin, ioout = self.signals
+            proc_inst = self.setup_proc(fname)
+
+            @instance
+            def tbstim():
+                n = randrange(40)
+                num_list = [n]
+                num_list.extend([randrange(2**8) for i in range(n)])
+                print(num_list)
+                ind = 0
+                op_count = 0
+                out_list = []
+                while 1:
+                    
+                    yield clock.posedge
+                    # print("CLOCK ----------------------------------------------------")
+                    yield delay(4)
+                    if ioout.rd_strobe == 1:
+                        if ioout.io_addr == 0:
+                            # print("INPUT HERE")
+                            ioin.rd_data.next = num_list[ind]
+                            ind += 1
+                    elif ioout.wr_strobe == 1:
+                        if ioout.io_addr == 1:
+                            yield delay(7)
+                            out_list.append(int(ioout.wr_data))
+                            op_count += 1
+                            if op_count == n:
+                                break
+
+                out_list.reverse()
+                num_list = sorted(num_list[1:])
+                print(out_list)
+                for i in range(n):
+                    assert out_list[i] == num_list[i]
+
+                raise StopSimulation
+
+
+            return instances()
+
+        path = '../generated/rom/'
+        test_files = ['bub_sort.rom']
+        for fname in test_files:
+            inst = tb_sort(path + fname)
+            inst.run_sim()      
