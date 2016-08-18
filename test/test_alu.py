@@ -1,5 +1,5 @@
 from pyleros import alu, decoder, rom
-from pyleros.types import IM_BITS, DM_BITS, alu_op_type, dec_op_type, decSignal
+from pyleros.types import IM_BITS, DM_BITS, alu_op_type, dec_op_type, decSignal, inpSignal
 from pyleros.codes import codes, dlist, conv_bin
 
 import pytest
@@ -31,7 +31,7 @@ def test_alu():
 
         dec_signal = decSignal()
         alu_op = Signal(alu_op_type.NOP)
-
+        ioin = inpSignal()
         decode_inst = decoder.pyleros_decoder(instr_hi, alu_op, dec_signal)
 
         # ALU SIGNALS
@@ -40,7 +40,7 @@ def test_alu():
         alu_opd = Signal(intbv(0)[16:])
         alu_res = Signal(intbv(0)[16:])
 
-        alu_inst = alu.pyleros_alu(alu_op, dec_signal, alu_acc, alu_opd, alu_res)
+        alu_inst = alu.pyleros_alu(alu_op, dec_signal, alu_acc, alu_opd, alu_res, ioin)
 
 
         rd_addr = Signal(intbv(0)[IM_BITS:])

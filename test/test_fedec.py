@@ -1,7 +1,7 @@
 from pyleros import fedec, alu, decoder
 from pyleros.fedec import sign_extend
 from pyleros.codes import dlist, codes, conv_bin
-from pyleros.types import alu_op_type, dec_op_type, IM_BITS, DM_BITS, decSignal
+from pyleros.types import alu_op_type, dec_op_type, IM_BITS, DM_BITS, decSignal, inpSignal
 
 import pytest
 
@@ -68,6 +68,7 @@ def test_fedec_imm():
         instr_hi = Signal(intbv(0)[8:])
         dec_inst = decoder.pyleros_decoder(instr_hi, alu_op, test_dec)
 
+        ioin = inpSignal()
 
         # ALU SIGNALS
         # out_list
@@ -77,7 +78,7 @@ def test_fedec_imm():
         
         instr_list, bin_list = create_instr_list()
 
-        alu_inst = alu.pyleros_alu(pipe_alu_op, out_dec, alu_acc, alu_opd, alu_res)
+        alu_inst = alu.pyleros_alu(pipe_alu_op, out_dec, alu_acc, alu_opd, alu_res, ioin)
 
         fedec_inst = fedec.pyleros_fedec(clock, reset, back_acc, back_dm_data, fwd_accu, pipe_alu_op,
                                         out_dec, pipe_imme, pipe_dm_addr, pipe_pc, filename=bin_list, debug = True)

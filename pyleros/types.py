@@ -1,4 +1,4 @@
-from myhdl import enum, Signal
+from myhdl import enum, Signal, intbv
 
 
 class decSignal():
@@ -16,8 +16,20 @@ class decSignal():
         self.jal = Signal(bool(0))
         self.loadh = Signal(bool(0))
         self.indls = Signal(bool(0))
-        self.signals = [self.al_ena, self.ah_ena, self.log_add, self.add_sub, self.shr, self.sel_imm, \
-                        self.store, self.outp, self.inp, self.br_op, self.jal, self.loadh, self.indls]
+        self.signals = [self.al_ena, self.ah_ena, self.log_add, self.add_sub, self.shr, self.sel_imm, self.store, \
+                        self.outp, self.inp, self.br_op, self.jal, self.loadh, self.indls]
+
+class inpSignal():
+    def __init__(self):
+        self.rd_data = Signal(intbv(0)[16:])
+
+
+class outpSignal():
+    def __init__(self):
+        self.wr_data = Signal(intbv(0)[16:])
+        self.wr_strobe = Signal(bool(0))
+        self.rd_strobe = Signal(bool(0))
+        self.io_addr = Signal(intbv(0)[16:])             
 
 
 

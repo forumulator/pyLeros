@@ -7,7 +7,7 @@ from pyleros.types import alu_op_type, dec_op_type
 
 
 @block
-def pyleros_alu(alu_op, dec, acc, opd, pre_acc, debug=False):
+def pyleros_alu(alu_op, dec, acc, opd, pre_acc, ioin, debug=False):
     """The alu module for pyleros, purely combinatorial
 
     Arguments (ports):
@@ -29,7 +29,8 @@ def pyleros_alu(alu_op, dec, acc, opd, pre_acc, debug=False):
     def op_add_sub():
 
         if __debug__:
-            print("inside alu", acc, opd)
+            if debug:
+                print("inside alu", acc, opd)
         if dec.add_sub == 0:
             res_arith.next = intbv(acc + opd)[16:]
             if __debug__:
@@ -69,6 +70,9 @@ def pyleros_alu(alu_op, dec, acc, opd, pre_acc, debug=False):
         elif dec.shr == 1:
             # SHR
             pre_acc.next = intbv(acc >> 1)[16:]
+
+        elif dec.inp == 1:
+            pre_acc.next = ioin.rd_data
 
         elif not (alu_op == alu_op_type.NOP):
             pre_acc.next = res_log

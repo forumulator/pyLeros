@@ -52,7 +52,6 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu, pipe_alu_op,
 
     branch_en = Signal(bool(0))
 
-    acc_z = True
     nxt_dm_addr = Signal(intbv(0)[DM_BITS:])
 
     # PC start from 0x00 in this design, and each instruction is executed exactly once. 
@@ -105,6 +104,7 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu, pipe_alu_op,
     @always_comb
     def branch_sel():
 
+        acc_z = True
         
         # if not reset == reset.active:
         if back_acc == 0:
@@ -161,7 +161,16 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu, pipe_alu_op,
         if branch_en == 1:
             # Sign extend the low 8 bits
             # of instruction
-            pc_op.next = sign_extend(instr[8:], IM_BITS)
+
+            # Temporary sign exten, need to swith to
+            # using signed intbvs
+            sign_tmp = intbv(instr[8:])[IM_BITS:]
+            if instr[7] == 1:
+                sign_tmp[:] = intbv((instr[8:] ^ -1 )+ 1)[8:]
+                sign_tmp[:] = intbv((sign_tmp ^ -1) +1)[IM_BITS:]
+
+
+            pc_op.next = sign_tmp
 
         else:
             pc_op.next = 1
@@ -172,7 +181,7 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu, pipe_alu_op,
         
     @always_comb
     def pc_next_set():
-        pc_add.next = pc + pc_op
+        pc_add.next = intbv(pc + pc_op)[IM_BITS:]
 
 
     @always_comb
@@ -194,15 +203,17 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu, pipe_alu_op,
 
         # if decode.add_sub == True:
         # Set the immediate value
+
         if decode.loadh:
             if __debug__:
                 pipe_imme.next = intbv(0)[16:]
             pipe_imme.next[16:8] = instr[8:]
             pipe_imme.next[8:0] = intbv(0)[8:]
         else:
+
             pipe_imme.next = instr[8:]
 
-        pipe_pc.next = pc_next 
+        pipe_pc.next = pc_add 
 
         pipe_dec.al_ena.next = decode.al_ena
         pipe_dec.ah_ena.next = decode.ah_ena

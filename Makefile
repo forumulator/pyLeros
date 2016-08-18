@@ -71,11 +71,8 @@ tools:
 	java -classpath lib/antlr-3.3-complete.jar org.antlr.Tool \
 		-fo java/tools/src/leros/asm/generated \
 		java/tools/src/grammar/Leros.g
-	javac -classpath lib/antlr-3.3-complete.jar \
-		-d java/tools/classes java/tools/src/leros/asm/generated/*.java \
-		java/tools/src/leros/asm/*.java
-	javac -d java/tools/classes -sourcepath \
-		java/tools/src java/tools/src/leros/sim/*.java
+	javac -classpath lib/antlr-3.3-complete.jar -d java/tools/classes java/tools/src/leros/asm/generated/*.java java/tools/src/leros/asm/*.java
+	javac -d java/tools/classes -sourcepath java/tools/src java/tools/src/leros/sim/*.java
 	cd java/tools/classes && jar cf ../lib/leros-tools.jar *
 
 java_app:

@@ -51,6 +51,7 @@ def pyleros_decoder(instr_hi, alu_op, out_sig, debug=False):
         out_sig.store.next = False
         out_sig.outp.next = False
         out_sig.inp.next = False
+        out_sig.outp.next = False
         out_sig.br_op.next = False
         out_sig.jal.next = False
         out_sig.loadh.next = False
@@ -120,7 +121,8 @@ def pyleros_decoder(instr_hi, alu_op, out_sig, debug=False):
             out_sig.br_op.next = True
 
         elif ins_ckh == 0x50:
-            # LOADADDR, to be implemented
+            # LOADADDR, used to read addr from DM for indirect
+            # load/store
             pass
 
         elif ins_ckh == 0x60:

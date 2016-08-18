@@ -1,6 +1,6 @@
 from pyleros import decoder, execute
 from pyleros.codes import dlist, codes
-from pyleros.types import alu_op_type, dec_op_type, IM_BITS, DM_BITS, decSignal
+from pyleros.types import alu_op_type, dec_op_type, IM_BITS, DM_BITS, decSignal, inpSignal
 
 import pytest
 
@@ -38,12 +38,14 @@ class TestClass:
 
         fwd_accu = Signal(intbv(0)[16:])
 
+        ioin = inpSignal()
+
         self.signals = clock, reset, instr_hi, pipe_dec_sig, in_imm, \
             in_dm_addr, in_pc, out_acc, out_dm_data
 
         self.decode_inst = decoder.pyleros_decoder(instr_hi, pipe_alu_op, pipe_dec_sig)
         self.exec_inst = execute.pyleros_exec(clock, reset, pipe_alu_op, pipe_dec_sig, in_imm, in_dm_addr, in_pc, \
-                                            out_acc, out_dm_data, fwd_accu, True)
+                                            out_acc, out_dm_data, fwd_accu, ioin, True)
 
         return self.decode_inst, self.exec_inst
 

@@ -28,9 +28,8 @@ def pyleros_dm(clk, reset, rd_addr, wr_addr, wr_data, wr_en, rd_data, debug=Fals
 
     @always_seq(clk.negedge, reset=reset)
     def read_write():
-        if __debug__:
-            if debug:
-                print("Reading DM at " +  str(int(rd_addr)) + " " + str(int(DM[int(rd_addr)].val)))
+        # if __debug__:
+        #     if debug:
 
         rd_data.next = DM[int(rd_addr)]
 

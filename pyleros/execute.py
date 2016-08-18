@@ -8,7 +8,7 @@ from pyleros import alu, ram
 
 @block
 def pyleros_exec(clk, reset, pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc,
-                 back_acc, back_dm_data, fwd_accu, debug=False):
+                 back_acc, back_dm_data, fwd_accu, ioin, debug=False):
     """The execute module for pyleros. The modules is purely 
     combinatorial, except for the updating the pipeline 
     register. The DM is instantied and only accessed
@@ -50,7 +50,7 @@ def pyleros_exec(clk, reset, pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pip
     dm_wr_addr_dly = Signal(intbv(0)[DM_BITS:])
 
     # Instantiate the ALU
-    alu_inst = alu.pyleros_alu(pipe_alu_op, pipe_dec, acc, opd, pre_accu, debug)
+    alu_inst = alu.pyleros_alu(pipe_alu_op, pipe_dec, acc, opd, pre_accu, ioin, debug)
 
     # Instantiate the DM
     dm_inst = ram.pyleros_dm(clk, reset, dm_rd_addr, dm_wr_addr, dm_wr_data, dm_wr_en, dm_rd_data, debug)
@@ -93,8 +93,8 @@ def pyleros_exec(clk, reset, pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pip
         # MUX for selecting the data to be written
         # in case of jal
         if pipe_dec.jal == True:
-            dm_wr_data.next = intbv(0)[16:]
-            dm_wr_data.next[IM_BITS:0] = pc_dly
+            # dm_wr_data.next = intbv(0)[16:]
+            dm_wr_data.next = pipe_pc
 
         else:
             dm_wr_data.next = acc
