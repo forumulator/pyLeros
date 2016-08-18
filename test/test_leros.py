@@ -92,5 +92,5 @@ class TestProcessor:
         path = '../generated/rom/'
         test_files = ['io_test.rom', 'iot_2.rom', 'io_br.rom', 'jal.rom', 'sum_n.rom']
         for fname in test_files:
-            inst = tb_arith_log(path + fname)
+            inst = tb_addnio(path + fname)
             inst.run_sim()   
