@@ -92,8 +92,7 @@ japp:
 rom: 
 	-rm -rf vhdl/generated
 	mkdir vhdl/generated
-	java -cp java/tools/lib/leros-tools.jar$(S)lib/antlr-3.3-complete.jar \
-		leros.asm.LerosAsm -s asm -d vhdl/generated $(APP).asm
+	java -cp java/tools/lib/leros-tools.jar$(S)lib/antlr-3.3-complete.jar leros.asm.LerosAsm -s asm -d vhdl/generated $(APP).asm
 
 jsim: rom
 	java -cp java/tools/lib/leros-tools.jar -Dlog=false \

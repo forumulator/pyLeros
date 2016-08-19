@@ -250,11 +250,13 @@ class TestClass:
                     instr_bin = instr_list[mod_addr][2]
 
                     state = simu_inst.__next__()
-                    yield clock.posedge
+                    yield delay(4)
                     assert state[0] == back_acc
-
                     if instr == 'LOAD':
                         assert addr == back_acc
+                    yield clock.posedge
+
+                    
 
                 yield delay(10)
                 assert state[0] == back_acc
