@@ -160,16 +160,7 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu, pipe_alu_op,
         if branch_en == 1:
             # Sign extend the low 8 bits
             # of instruction
-
-            # Temporary sign exten, need to swith to
-            # using signed intbvs
-            sign_tmp = intbv(instr[8:])[IM_BITS:]
-            if instr[7] == 1:
-                sign_tmp[:] = intbv((instr[8:] ^ -1 )+ 1)[8:]
-                sign_tmp[:] = intbv((sign_tmp ^ -1) +1)[IM_BITS:]
-
-
-            pc_op.next = sign_tmp
+            pc_op.next = instr[8:].signed()[16:]
 
         else:
             pc_op.next = 1

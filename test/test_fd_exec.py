@@ -243,6 +243,7 @@ class TestClass:
                     elif instr == 'STORE':
                         acc == back_acc
 
+
                 for addr in range(10):
                     mod_addr = addr + 20
                     instr = instr_list[mod_addr][0]
@@ -250,11 +251,10 @@ class TestClass:
                     instr_bin = instr_list[mod_addr][2]
 
                     state = simu_inst.__next__()
-                    yield delay(4)
+                    yield clock.posedge
                     assert state[0] == back_acc
                     if instr == 'LOAD':
                         assert addr == back_acc
-                    yield clock.posedge
 
                     
 

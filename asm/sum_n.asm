@@ -7,6 +7,7 @@
 	nop
 	in 0 // input n
 	store r2 // DM[0] is 0x0000, DM[1] is reserved for jal
+	load 1
 	store r3 // Counter for no. of inputs
 	load <inp_lp
 	jal r1
@@ -21,11 +22,13 @@ end:
 inp_lp:
 	in 0
 	loadaddr r3
-	store (ar+6)
+	store (ar+4)
 	load r3
-	sub 1
+	add 1
 	store r3
-	brnz inp_lp
+	sub r2
+	brn inp_lp
+	brz inp_lp
 	load r1
 	jal r1
 
@@ -33,17 +36,19 @@ inp_lp:
 pre_sum_lp:
 	load 0
 	store r255
-	load r2
+	load 1
 	store r3
 sum_lp: // Add n numbers, the result is always stored in DM[255]
 	loadaddr r3
-	load (ar+7)
+	load (ar+4)
 	add r255
 	store r255
 	load r3
-	sub 1
+	add 1
 	store r3
-	brnz sum_lp
+	sub r2
+	brn sum_lp
+	brz sum_lp
 	branch end
 
 
