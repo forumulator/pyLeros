@@ -33,6 +33,8 @@ inp_lp:
 pre_sum_lp:
 	load 0
 	store r255
+	load 0
+	store r3
 sum_lp: // Add n numbers, the result is always stored in DM[255]
 	load r3
 	add 1

@@ -44,6 +44,9 @@ def pyleros_dm(clk, reset, rd_addr, wr_addr, wr_data, wr_en, rd_data, debug=Fals
                     print("Writing to DM at " + str(wr_addr) + " " + str(int(wr_data.val)))
             
             DM[int(wr_addr)].next = wr_data
+            if (wr_addr == 17):
+                for i in range(20):
+                    print ("At DM address", i, "data", DM[i])
 
     return read_write
 
