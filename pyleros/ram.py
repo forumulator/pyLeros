@@ -24,7 +24,7 @@ def pyleros_dm(clk, reset, rd_addr, wr_addr, wr_data, wr_en, rd_data, debug=Fals
         
     """
     DM_SIZE = 2**DM_BITS
-    DM = [Signal(intbv(0)[16:]) for _ in range(DM_SIZE)]
+    DM = [Signal(intbv(7)[16:]) for _ in range(DM_SIZE)]
 
     @always_seq(clk.posedge, reset=reset)
     def read_write():
@@ -42,6 +42,8 @@ def pyleros_dm(clk, reset, rd_addr, wr_addr, wr_data, wr_en, rd_data, debug=Fals
                 
                 if debug:
                     print("Writing to DM at " + str(wr_addr) + " " + str(int(wr_data.val)))
+            # if wr_addr == 19:
+            #     print(DM[:20])
             
             DM[int(wr_addr)].next = wr_data
 

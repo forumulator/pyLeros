@@ -88,6 +88,9 @@ def pyleros_exec(clk, reset, pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pip
         else:
             dm_wr_en.next = False
 
+        # Used to ensure that address for 
+        # stores don't get affected by the next instruction fetch and
+        # decode
         dm_wr_addr.next = dm_wr_addr_dly
 
         # MUX for selecting the data to be written

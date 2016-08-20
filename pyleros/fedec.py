@@ -58,7 +58,7 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu, pipe_alu_op,
     pc = Signal(intbv(0)[IM_BITS:]) 
     pc_next = Signal(intbv(0)[IM_BITS:])
     pc_add = Signal(intbv(0)[IM_BITS:])
-    pc_op = Signal(intbv(0)[16:])
+    pc_op = Signal(intbv(0, min = -2**(IM_BITS - 1), max = 2**(IM_BITS - 1) - 1))
     decode = decSignal()
     alu_op = Signal(alu_op_type.NOP)
 
@@ -160,7 +160,7 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu, pipe_alu_op,
         if branch_en == 1:
             # Sign extend the low 8 bits
             # of instruction
-            pc_op.next = instr[8:].signed()[16:]
+            pc_op.next = instr[8:].signed()
 
         else:
             pc_op.next = 1

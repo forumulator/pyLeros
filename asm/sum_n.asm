@@ -36,19 +36,19 @@ inp_lp:
 pre_sum_lp:
 	load 0
 	store r255
-	load 1
-	store r3
+	load r2
+	store r25
+	nop
 sum_lp: // Add n numbers, the result is always stored in DM[255]
-	loadaddr r3
+	// nop
+	loadaddr r25
 	load (ar+4)
 	add r255
 	store r255
-	load r3
-	add 1
-	store r3
-	sub r2
-	brn sum_lp
-	brz sum_lp
+	load r25
+	sub 1
+	store r25
+	brnz sum_lp
 	branch end
 
 
