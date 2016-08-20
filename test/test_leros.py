@@ -86,7 +86,7 @@ class TestProcessor:
             return instances()
 
         path = '../generated/rom/'
-        test_files = ['io_test.rom', 'iot_2.rom', 'io_br.rom', 'jal.rom', 'sum_n.rom']
+        test_files = [   'sum_n.rom' ]#'io_test.rom', 'iot_2.rom', 'io_br.rom', 'jal.rom']
         for fname in test_files:
             inst = tb_addnio(path + fname)
             inst.run_sim()

@@ -19,8 +19,10 @@ def testbench_ram(args=None):
     clock = Signal(bool(0))
     reset = ResetSignal(0, active=1, async=True)
 
-    rd_addr, wr_addr = [Signal(intbv(0)[DM_BITS:])] * 2
-    rd_data, wr_data = [Signal(intbv(0)[16:])] * 2
+    rd_addr = Signal(intbv(0)[DM_BITS:])
+    wr_addr = Signal(intbv(0)[DM_BITS:])
+    rd_data = Signal(intbv(0)[16:])
+    wr_data = Signal(intbv(0)[16:])
     wr_en = Signal(bool(0))
 
     DM_SIZE = 2**DM_BITS
@@ -72,7 +74,7 @@ def testbench_ram(args=None):
 
             yield clock.posedge
 
-            yield delay(1)
+            yield delay(4)
 
             # if not rd_data == 0:
             assert (rd_data & 0xffff) == (data_array[addr] & 0xffff)

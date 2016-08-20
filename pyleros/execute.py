@@ -88,7 +88,10 @@ def pyleros_exec(clk, reset, pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pip
         else:
             dm_wr_en.next = False
 
-        dm_wr_addr.next = pipe_dm_addr
+        # Used to ensure that address for 
+        # stores don't get affected by the next instruction fetch and
+        # decode
+        dm_wr_addr.next = dm_wr_addr_dly
 
         # MUX for selecting the data to be written
         # in case of jal
@@ -119,6 +122,7 @@ def pyleros_exec(clk, reset, pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pip
             if __debug__:
                 if debug:
                     print("Next value of the accumulator " + str(int(pre_accu)))
+        dm_wr_addr_dly.next = pipe_dm_addr
 
     @always_comb
     def fwd_acc_set():

@@ -52,14 +52,13 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu, pipe_alu_op,
 
     branch_en = Signal(bool(0))
 
-    nxt_dm_addr = Signal(intbv(0)[DM_BITS:])
 
     # PC start from 0x00 in this design, and each instruction is executed exactly once. 
     # In the original design, PC started from 1. However, 0x00 is typically NOP
     pc = Signal(intbv(0)[IM_BITS:]) 
     pc_next = Signal(intbv(0)[IM_BITS:])
     pc_add = Signal(intbv(0)[IM_BITS:])
-    pc_op = Signal(intbv(0)[16:])
+    pc_op = Signal(intbv(0, min = -2**(IM_BITS - 1), max = 2**(IM_BITS - 1) - 1))
     decode = decSignal()
     alu_op = Signal(alu_op_type.NOP)
 
@@ -92,14 +91,14 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu, pipe_alu_op,
             #     if debug:
             #         print("offset address: " + str(int(offset_addr)))
 
-            nxt_dm_addr.next = offset_addr[DM_BITS:] 
+            pipe_dm_addr.next = offset_addr[DM_BITS:] 
 
         else:
             # Direct Addressing
             # if __debug__:
             #     if debug:
             #         print("direct address: " + str(int(instr[DM_BITS:])))
-            nxt_dm_addr.next = instr[DM_BITS:]
+            pipe_dm_addr.next = instr[DM_BITS:]
 
     @always_comb
     def branch_sel():
@@ -161,16 +160,7 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu, pipe_alu_op,
         if branch_en == 1:
             # Sign extend the low 8 bits
             # of instruction
-
-            # Temporary sign exten, need to swith to
-            # using signed intbvs
-            sign_tmp = intbv(instr[8:])[IM_BITS:]
-            if instr[7] == 1:
-                sign_tmp[:] = intbv((instr[8:] ^ -1 )+ 1)[8:]
-                sign_tmp[:] = intbv((sign_tmp ^ -1) +1)[IM_BITS:]
-
-
-            pc_op.next = sign_tmp
+            pc_op.next = instr[8:].signed()
 
         else:
             pc_op.next = 1
@@ -230,8 +220,6 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu, pipe_alu_op,
         pipe_dec.indls.next = decode.indls
 
         pipe_alu_op.next = alu_op
-
-        pipe_dm_addr.next = nxt_dm_addr
 
         pc.next = pc_next        
 
