@@ -1,6 +1,6 @@
-from pyleros import fedec, execute
+from pyleros.top import pyleros
 from pyleros.codes import dlist, codes
-from pyleros.types import alu_op_type, dec_op_type, IM_BITS, DM_BITS
+from pyleros.types import alu_op_type, dec_op_type, IM_BITS, DM_BITS, decSignal, inpSignal, outpSignal
 from pyleros.sim import sim
 
 import pytest
@@ -14,7 +14,17 @@ from datetime import datetime
 random.seed(int(datetime.now().time().second))
 
 
-class TestClass:
+
+@block
+def clk_def(clock):
+
+    @always(delay(10))
+    def tbclk():
+        clock.next = not clock
+
+    return tbclk
+
+class TestProcessor:
 
     @classmethod
     def setup_class(self):
@@ -22,436 +32,118 @@ class TestClass:
         clock = Signal(bool(0))
         reset = ResetSignal(0, active=1, async=True)
 
-        # DECODER SIGNALS
-
-
-        pipe_dec = [Signal(bool(0)) for sig in dlist]
-
-        # Input Signals to Execute
-        pipe_imme = Signal(intbv(0)[16:])
-        pipe_dm_addr = Signal(intbv(0)[DM_BITS:])
-        pipe_pc = Signal(intbv(0)[IM_BITS:])
-
-        back_acc = Signal(intbv(0)[16:])
-        back_dm_data = Signal(intbv(0)[16:])
-
-        self.signals = clock, reset, pipe_dec, pipe_imme, \
-            pipe_dm_addr, pipe_pc, back_acc, back_dm_data
-
-        self.fwd_accu = Signal(intbv(0)[16:])
-        self.pipe_alu_op = Signal(alu_op_type.NOP)
+        ioin = inpSignal()
+        ioout = outpSignal()
+        self.signals = clock, reset, ioin, ioout
     
-
     @block
-    def init_func(self, bin_list):
-        clock, reset, pipe_dec, pipe_imme, \
-            pipe_dm_addr, pipe_pc, back_acc, back_dm_data = self.signals
+    def setup_proc(self, filename):
+        clock, reset, ioin, ioout = self.signals
 
-        self.fedec_inst = fedec.pyleros_fedec(clock, reset, back_acc, back_dm_data, self.fwd_accu, \
-                                    self.pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc, filename=bin_list, debug=True)
-        self.exec_inst = execute.pyleros_exec(clock, reset, self.pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc, \
-                                        back_acc, back_dm_data, self.fwd_accu, True)
-        self.simu_inst = sim.simulator(bin_list) 
-        return self.fedec_inst, self.exec_inst
+        inst_clk = clk_def(clock)
+        inst_proc = pyleros(clock, reset, ioin, ioout, filename = filename)
+
+        return instances()
 
 
-
-    def test_arith(self):
+    def test_addn_io(self):
 
         @block
-        def tb_arith_log( args=None):
-            """Test arithametic and logical instructions
+        def tb_addnio(fname=None):
+            """Test io, addition, branching et.c using
+            assembeled files. 
 
             """
 
-            def create_instr(tup, imm=True):
-                """Create a list of random instructions
-                from the list given.
+            clock, reset, ioin, ioout = self.signals
+            proc_inst = self.setup_proc(fname)
 
-                """
-                instr_list, bin_list = [], []
-                op = 0
-
-                rr = len(tup)
-
-                for i in range(250):
-                    instr = tup[randrange(rr)]
-                    op = randrange(2**8)
-                    # Add Immediate
-                    instr_bin = codes[instr][0] | 0x01
-                    instr_bin = (instr_bin << 8) | intbv(op)[8:]
-                    instr_list.append((instr, op, instr_bin))
-
-                for i in range(len(instr_list)):
-                    bin_list.append(instr_list[i][2])
-
-                return instr_list, bin_list
-
-            tup = tuple(['ADD', 'SUB', 'OR', 'AND', 'XOR', 'SHR', 'LOAD'])
-            instr_list, bin_list = create_instr(tup)
-
-            # Initialise signals and dut's
-            clock, reset, pipe_dec, pipe_imme, \
-                pipe_dm_addr, pipe_pc, back_acc, back_dm_data = self.signals
-
-            self.init_func(bin_list)
-            fedec_inst, exec_inst, simu_inst =  self.fedec_inst, self.exec_inst, self.simu_inst
-
-
-            @always(delay(10))
-            def tbclk():
-                clock.next = not clock
-
-            # the alu is run once on intialization anyway, and the value
-            # is set to zero(0 + 0)
             @instance
             def tbstim():
-                # local accumulator var
-                acc = 0
-                # yield delay(11) # or yield clock.posedge, same result.
-                # yield clock.posedge
-                yield clock.posedge
-                yield delay(2)
+                n = 15
+                num_list = [n]
+                num_list.extend([randrange(2**4) for i in range(n)])
+                print(num_list)
+                ind = 0
 
-                for addr in range(1, len(instr_list)):
-
-                    instr = instr_list[addr][0]
-                    op = instr_list[addr][1]
-                    instr_bin = instr_list[addr][2]
-
-                    state = simu_inst.__next__()
-                    yield clock.posedge
-                    yield delay(3)
-                    assert state[0] == back_acc
-
+                while 1:
                     
-                    if addr == 0:
-                        print("At 0x00:", instr, op, back_acc)
-                    if instr == 'ADD':
-                        assert ((acc + op) & 0xffff) == back_acc
-                        acc += op
-                    elif instr == 'SUB':
-                        assert ((acc - op) & 0xffff) == back_acc
-                        acc -= op
-                        acc &= 0xffff
-                    elif instr == 'OR':
-                        assert ((acc | op) & 0xffff) == back_acc
-                        acc |= op
-                    elif instr == 'AND':
-                        assert ((acc & op) & 0xffff) == back_acc
-                        acc &= op
-                    elif instr == 'XOR':
-                        assert ((acc ^ op) & 0xffff) == back_acc
-                        acc ^= op
-                    elif instr == 'SHR':
-                        acc = ((acc & 0xffff) >> 1)
-                        assert acc == back_acc
-                    elif instr == 'LOAD':
-                        acc = op
-                        assert acc == back_acc
+                    yield clock.posedge
+                    # print("CLOCK ----------------------------------------------------")
+                    yield delay(4)
+                    if ioout.rd_strobe == 1:
+                        if ioout.io_addr == 0:
+                            # print("INPUT HERE")
+                            ioin.rd_data.next = num_list[ind]
+                            ind += 1
+                    elif ioout.wr_strobe == 1:
+                        if ioout.io_addr == 1:
+                            yield delay(7)
+                            assert ioout.wr_data == sum(num_list[:ind]) - n
+                            raise StopSimulation
 
-                raise StopSimulation
 
             return instances()
 
-        inst = tb_arith_log()
-        inst.run_sim()   
+        path = '../generated/rom/'
+        test_files = [   'sum_n.rom' ]#'io_test.rom', 'iot_2.rom', 'io_br.rom', 'jal.rom']
+        for fname in test_files:
+            inst = tb_addnio(path + fname)
+            inst.run_sim()
 
 
-    def test_ls(self):
 
-        @block
-        def tb_ls( args=None):
-            """Test load/store instructions
-
-            """
-            def create_instr(imm=False):
-                """Create a list of instructions.
-
-                """
-                instr_list, bin_list = [], []
-                op = 0
-                flg = 1
-                for i in range( 10):
-                    # STORE current value
-                    instr = 'STORE'
-                    addr = i
-                    instr_bin = codes[instr][0]
-                    instr_bin = (instr_bin << 8) | intbv(addr)[8:]
-                    instr_list.append((instr, addr, instr_bin))
-
-                    # ADD 1
-                    instr = 'ADD'
-                    op = 1
-                    instr_bin = ((codes[instr][0] | flg) << 8) | intbv(op)[8:]
-                    instr_list.append((instr, op, instr_bin))
-                    #flg = 0
-
-                for i in range(10):
-                    instr = 'LOAD'  
-                    addr = i
-                    instr_bin = (codes[instr][0] << 8) | intbv(addr)[8:]
-                    instr_list.append((instr, addr, instr_bin))
-
-                for i in range(len(instr_list)):
-                    bin_list.append(instr_list[i][2])
-
-                
-                return instr_list, bin_list
-
-
-            instr_list, bin_list = create_instr()
-
-            # Initialise signals and dut's
-            clock, reset, pipe_dec, pipe_imme, \
-                pipe_dm_addr, pipe_pc, back_acc, back_dm_data = self.signals
-
-            self.init_func(bin_list)
-            fedec_inst, exec_inst, simu_inst =  self.fedec_inst, self.exec_inst, self.simu_inst
-
-
-            @always(delay(10))
-            def tbclk():
-                clock.next = not clock
-
-            # the alu is run once on intialization anyway, and the value
-            # is set to zero(0 + 0)
-            @instance
-            def tbstim():
-                # local accumulator var
-                acc = 0
-                # yield delay(11) # or yield clock.posedge, same result.
-                yield clock.posedge
-                yield delay(1)
-
-                addr = 0
-                for addr in range(1, 20):
-                    state = simu_inst.__next__()
-                    instr = instr_list[addr][0]
-                    op = instr_list[addr][1]
-                    instr_bin = instr_list[addr][2]
-                    # print("Bf", addr, back_acc)
-                    yield clock.posedge
-                    yield delay(1)
-                    assert state[0] == back_acc
-                    # print("Af", addr,  back_acc)
-                    # print("This is iteration " + str(addr))
-                    if instr == 'ADD':
-                        acc += op
-                        assert (acc & 0xffff) == back_acc
-                    elif instr == 'STORE':
-                        acc == back_acc
-
-                yield clock.posedge
-                yield delay(1)
-                for addr in range(10):
-                    mod_addr = addr + 20
-                    instr = instr_list[mod_addr][0]
-                    op = instr_list[mod_addr][1]
-                    instr_bin = instr_list[mod_addr][2]
-
-                    state = simu_inst.__next__()
-                    yield clock.posedge
-                    yield delay(1)
-                    assert state[0] == back_acc
-
-                    if instr == 'LOAD':
-                        assert addr == back_acc
-
-                raise StopSimulation
-
-            return instances()
-
-        inst = tb_ls()
-        inst.run_sim()
-
-    
-
-
-    def test_branch(self):
+    def test_sort(self):
 
         @block
-        def tb_branch( args=None):
-            """Test branches.
+        def tb_sort(fname=None):
+            """Test bubble sort
 
             """
 
-            def create_instr(imm=False):
-                """Create a list of random instructions
-                from the list given.
+            clock, reset, ioin, ioout = self.signals
+            proc_inst = self.setup_proc(fname)
 
-                """
-                instr_list, bin_list = [], []
-                op = 0
-                flg = 1
-
-                # list of instructions, that finally yield the value
-                # 37
-                i_list = [
-                ('NOP', 0, False),
-                ('ADD', 10, True),
-                ('SUB', 5, True),
-                ('XOR', 13, True),
-                ('STORE', 50, False),
-                ('ADD', 15, True),
-                ('STORE', 51, False),
-                ('XOR', 48, True),
-                ('LOAD', 27, True),
-                ('JAL', 1, False),
-                ]
-                
-                for i in range(10, 27):
-                    i_list.append(('NOP', 0, False))
-                i_list.append(('LOAD', 51, False))
-                i_list.append(('LOADX', 27, False))
-                i_list.append(('XOR', 45, True))
-
-                for i in i_list:
-                    instr, val, imme = i
-                    instr_bin = ((codes[instr][0] | imme) << 8) | intbv(val)[8:]
-                    instr_list.append((instr, val, instr_bin))
-
-                for i in range(len(instr_list)):
-                    bin_list.append(instr_list[i][2])
-
-                return instr_list, bin_list
-
-            instr_list, bin_list = create_instr()
-
-            # Initialise signals and dut's
-            clock, reset, pipe_dec, pipe_imme, \
-                pipe_dm_addr, pipe_pc, back_acc, back_dm_data = self.signals
-
-            self.init_func(bin_list)
-            fedec_inst, exec_inst, simu_inst =  self.fedec_inst, self.exec_inst, self.simu_inst           
-
-            @always(delay(10))
-            def tbclk():
-                clock.next = not clock
-
-            # the alu is run once on intialization anyway, and the value
-            # is set to zero(0 + 0)
             @instance
             def tbstim():
-                # local accumulator var
-                acc = 0
-                # yield delay(11) # or yield clock.posedge, same result.
-                yield clock.posedge
-                yield delay(1)
-                yield clock.posedge
-                addr = 0
-                for addr in range(15):
-                    # simu_inst.__next__()
-                    state = simu_inst.__next__()
+                n = randrange(40)
+                num_list = [n]
+                num_list.extend([randrange(2**8) for i in range(n)])
+                print(num_list)
+                ind = 0
+                op_count = 0
+                out_list = []
+                while 1:
+                    
                     yield clock.posedge
-                    assert state[0] == back_acc
+                    # print("CLOCK ----------------------------------------------------")
+                    yield delay(4)
+                    if ioout.rd_strobe == 1:
+                        if ioout.io_addr == 0:
+                            # print("INPUT HERE")
+                            ioin.rd_data.next = num_list[ind]
+                            ind += 1
+                    elif ioout.wr_strobe == 1:
+                        if ioout.io_addr == 1:
+                            yield delay(7)
+                            out_list.append(int(ioout.wr_data))
+                            op_count += 1
+                            if op_count == n:
+                                break
 
-                assert back_acc == 37
+                out_list.reverse()
+                num_list = sorted(num_list[1:])
+                print(out_list)
+                for i in range(n):
+                    assert out_list[i] == num_list[i]
 
                 raise StopSimulation
 
-            return instances()
-
-        inst = tb_branch()
-        inst.run_sim()
-
-
-
-    def test_random(self):
-
-        @block
-        def tb_rand( args=None):
-            """Test branches.
-
-            """
-
-            def create_instr():
-                """Create a list of random instructions
-                
-                """
-                instr_list, bin_list = [], []
-                op = 0
-                ibit = 1
-
-                tup = tuple(['NOP', 'ADD', 'SUB', 'OR', 'AND', 'XOR', 'SHR', 'LOAD', 'STORE', 'LOADX', 'STOREX', 'BRANCH', 'BRZ', 'BRNZ', 'BRP', 'BRN', 'JAL'])
-                num = len(tup)
-
-                instr_list.append(('NOP', 0, 0))
-                for addr in range(1, 256):
-                    ind = randrange(num)
-                    instr = tup[ind]
-                    if instr == 'JAL':
-                        ti = 'LOAD'
-                        op = randrange(256)
-                        instr_bin = ((codes[ti][0] | True) << 8) | op
-                        instr_list.append((ti, op, instr_bin))
-                        op = 0x01
-                    elif instr == 'STOREX' or instr == 'STOREX':
-                        ti = 'LOAD'
-                        op = randrange(128)
-                        instr_bin = ((codes[ti][0] | True) << 8) | op
-                        instr_list.append((ti, op, instr_bin))
-                        op = randrange(128)
-                    else:
-                        if ind < 9:
-                            op = randrange(2**8)
-                        else:
-                            op = randrange(5)
-
-                    if codes[instr][2]:
-                        ibit = randrange(2)
-                    else:
-                        ibit = 0
-
-                    instr_bin = ((codes[instr][0] | ibit) << 8) | op
-                    instr_list.append((instr, op, instr_bin))
-
-                for i in range(len(instr_list)):
-                    bin_list.append(instr_list[i][2])
-
-                return instr_list, bin_list
-
-            instr_list, bin_list = create_instr()
-
-            # Initialise signals and dut's
-            clock, reset, pipe_dec, pipe_imme, \
-                pipe_dm_addr, pipe_pc, back_acc, back_dm_data = self.signals
-
-            self.init_func(bin_list)
-            fedec_inst, exec_inst, simu_inst =  self.fedec_inst, self.exec_inst, self.simu_inst           
-
-            @always(delay(10))
-            def tbclk():
-                clock.next = not clock
-
-            # the alu is run once on intialization anyway, and the value
-            # is set to zero(0 + 0)
-            @instance
-            def tbstim():
-                # local accumulator var
-                acc = 0
-                # yield delay(11) # or yield clock.posedge, same result.
-                yield clock.posedge
-                yield delay(1)
-                yield clock.posedge
-                addr = 0
-                for addr in range(255):
-
-                    instr = instr_list[addr + 1][0]
-                    op = instr_list[addr + 1][1]
-
-                    # simu_inst.__next__()
-                    state = simu_inst.__next__()
-                    yield clock.posedge
-                    print(instr, op, back_acc, "--------------------------------------------------------------")
-                    assert state[0] == back_acc
-
-                # assert 0
-
-                raise StopSimulation
 
             return instances()
 
-        inst = tb_rand()
-        inst.run_sim()
-
+        path = '../generated/rom/'
+        test_files = ['bub_sort.rom']
+        for fname in test_files:
+            inst = tb_sort(path + fname)
+            inst.run_sim()      

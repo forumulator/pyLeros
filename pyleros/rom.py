@@ -1,10 +1,10 @@
-from myhdl import block, Signal, intbv, instances, always_seq
+from myhdl import block, Signal, intbv, instances, always_seq, always_comb
 from pyleros.types import IM_BITS
 import sys
 
 
 @block
-def pyleros_im(clk, reset, rd_addr, rd_data, filename=None, debug=False):
+def pyleros_im(rd_addr, rd_data, IM_array = None, debug = False):
     """Definition of the instruction memory, or the ROM for
     pyleros. Reading is synchronous with the rising edge of the
     clock. Writing is not enabled.
@@ -16,47 +16,40 @@ def pyleros_im(clk, reset, rd_addr, rd_data, filename=None, debug=False):
         rd_data: OUT The data at IM address
 
     Parameters:
-        filename: Name of the file or a list containing the instructions
+        rfile: Name of the file or a list containing the instructions
         debug: Debugging mode, the processor prints various error messages
         
     """
     IM_SIZE = 2**IM_BITS
-    IM = [(intbv(0)[16:]) for _ in range(IM_SIZE)]
+    
+    if not type(IM_array) is tuple:
+        # Fill up the memory registers
+        IM_array = define_rom(IM_SIZE, IM_array)
 
-    # Fill up the memory registers
-    define_rom(IM, IM_SIZE, filename)
-
-    # convert list into tupple for automatic conversion
-    IM_array = tuple(IM)
-
-    @always_seq(clk.posedge, reset=reset)
-    def IM_read():
-        if debug:
-            print("\nReading instr mem at:", rd_addr, ", ", IM_array[rd_addr])
+    @always_comb
+    def read():
+        if __debug__:
+            if debug:
+                print("\nReading instr mem at:", rd_addr)
+                print("Instruction", IM_array[int(rd_addr)])
         rd_data.next = IM_array[int(rd_addr)]
 
-    return instances()
+    return read
 
 
 
 
-def define_rom(IM, IM_SIZE=1024, filename = None):
+def define_rom(IM_SIZE=1024, rfile = None):
 
-    if filename:
-        if type(filename) is list:
-            # print("\nOrg mem\n")
-            for addr in range(len(filename)):
-                # if addr < 10:
-                #   print(filename[addr])
-                IM[addr] = intbv(int(filename[addr]))[16:]
-                addr += 1
+    IM = [0 for _ in range(IM_SIZE)]
 
-            for i in range(addr, IM_SIZE):
-                IM[i] = intbv(0x0000)[16:]
-            return 0
+    if rfile:
+        if type(rfile) is list:
+            rfile.extend([0 for i in range(5)])
+            return tuple(rfile)
 
         else:
-            with open(filename, "r") as f:
+            with open(rfile, "r") as f:
                 addr = 0
 
                 for line in f:
@@ -72,15 +65,17 @@ def define_rom(IM, IM_SIZE=1024, filename = None):
 
                         else:
                             try:
-                                instr = intbv(int(line, 2))[16:]
+                                instr = int(line, 2)
                                 IM[addr] = instr
                                 addr += 1
                             except:
                                 raise Exception
 
-                for i in range(addr, IM_SIZE):
+                # for i in range(addr, IM_SIZE):
 
-                    IM[i] = intbv(0x0000)[16:]
+                #     IM[i] = intbv(0x0000)[16:]
+                IM.extend([0 for _ in range(5)])
+                return tuple(IM)
 
 
     else:
@@ -109,23 +104,26 @@ def define_rom(IM, IM_SIZE=1024, filename = None):
         for i in range(len(instruction_list), IM_SIZE):
             IM[i] = (intbv(0x0000)[16:])
 
+        return tuple(IM)
+
 
 if __name__ == "__main__":
 
-    if len(sys.argv) == 1:
-        filename = None
+    pass
+    # if len(sys.argv) == 1:
+    #     rfile = None
 
-    else:
-        filename = sys.argv[1]
+    # else:
+    #     rfile = sys.argv[1]
 
-    IM_SIZE = 1024
-    IM = [(intbv(0)[16:]) for _ in range(IM_SIZE)]
+    # IM_SIZE = 1024
+    # IM = [(intbv(0)[16:]) for _ in range(IM_SIZE)]
 
 
-    # Fill up the memory registers
-    define_rom(IM, IM_SIZE, filename)
+    # # Fill up the memory registers
+    # define_rom(IM, IM_SIZE, rfile)
 
-    IM_array = tuple(IM)
+    # IM_array = tuple(IM)
     
-    for addr in range(IM_SIZE):
-        print(str(addr) + " : " + hex(IM[addr]))
+    # for addr in range(IM_SIZE):
+    #     print(str(addr) + " : " + hex(IM[addr]))

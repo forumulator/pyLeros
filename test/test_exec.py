@@ -1,6 +1,6 @@
 from pyleros import decoder, execute
 from pyleros.codes import dlist, codes
-from pyleros.types import alu_op_type, dec_op_type, IM_BITS, DM_BITS
+from pyleros.types import alu_op_type, dec_op_type, IM_BITS, DM_BITS, decSignal, inpSignal
 
 import pytest
 
@@ -25,7 +25,7 @@ class TestClass:
         # DECODER SIGNALS
         instr_hi = Signal(intbv(0)[8:])
 
-        out_list = [Signal(bool(0)) for sig in dlist]
+        pipe_dec_sig = decSignal()
         pipe_alu_op = Signal(alu_op_type.NOP)
 
         # Input Signals to Execute
@@ -38,12 +38,14 @@ class TestClass:
 
         fwd_accu = Signal(intbv(0)[16:])
 
-        self.signals = clock, reset, instr_hi, out_list, in_imm, \
+        ioin = inpSignal()
+
+        self.signals = clock, reset, instr_hi, pipe_dec_sig, in_imm, \
             in_dm_addr, in_pc, out_acc, out_dm_data
 
-        self.decode_inst = decoder.pyleros_decoder(instr_hi, pipe_alu_op, out_list)
-        self.exec_inst = execute.pyleros_exec(clock, reset, pipe_alu_op, out_list, in_imm, in_dm_addr, in_pc, \
-                                            out_acc, out_dm_data, fwd_accu, True)
+        self.decode_inst = decoder.pyleros_decoder(instr_hi, pipe_alu_op, pipe_dec_sig)
+        self.exec_inst = execute.pyleros_exec(clock, reset, pipe_alu_op, pipe_dec_sig, in_imm, in_dm_addr, in_pc, \
+                                            out_acc, out_dm_data, fwd_accu, ioin, True)
 
         return self.decode_inst, self.exec_inst
 
@@ -76,7 +78,7 @@ class TestClass:
 
             """
             # Initialise signals and dut's
-            clock, reset, instr_hi, out_list, in_imm, \
+            clock, reset, instr_hi, pipe_dec_sig, in_imm, \
                 in_dm_addr, in_pc, out_acc, out_dm_data = self.signals
             inst_blks = self.decode_inst, self.exec_inst
             
@@ -133,7 +135,7 @@ class TestClass:
 
             """
             # Initialise signals and dut's
-            clock, reset, instr_hi, out_list, in_imm, \
+            clock, reset, instr_hi, pipe_dec_sig, in_imm, \
                 in_dm_addr, in_pc, out_acc, out_dm_data = self.signals
             inst_blks = self.decode_inst, self.exec_inst
 
@@ -196,7 +198,7 @@ class TestClass:
 
             """
             # Initialise signals and dut's
-            clock, reset, instr_hi, out_list, in_imm, \
+            clock, reset, instr_hi, pipe_dec_sig, in_imm, \
                 in_dm_addr, in_pc, out_acc, out_dm_data = self.signals
             inst_blks = self.decode_inst, self.exec_inst
 
@@ -208,43 +210,47 @@ class TestClass:
             def tbstim():
                 # local accumulator var
                 acc = 0
-                # reset.next = reset.active
-                # yield delay(3)
-                # reset.next = not reset.active
+                instr_bin = intbv(((codes['LOAD'][0] | 0x01) << 8) | 0)[16:]
+                instr_hi.next = instr_bin[16:8]
+                in_dm_addr.next = 0
+                in_imm.next = 0
                 yield delay(2)
+                yield clock.posedge
 
                 # Test 1: store and read consecutive 256 values
                 # store
                 for addr in range(256):
 
+                    in_dm_addr.next = addr
+                    in_imm.next = 0
+                    instr_hi.next = 0x00
+                    yield clock.posedge
                     instr_bin = intbv((codes['STORE'][0] << 8) | (addr & 0xff))[16:]
                     instr_hi.next = instr_bin[16:8]
 
-                    in_dm_addr.next = addr
                     in_imm.next = 0
-                    yield clock.negedge
-                    # yield delay(2)
+                    yield clock.posedge
                     instr_bin = intbv(0x0901)[16:]
                     instr_hi.next = instr_bin[16:8]
+                    in_dm_addr.next = 0
                     in_imm.next = 1
                     yield clock.posedge
-                    # delay(2)
                     instr_hi.next = 0x00
                     
                 instr_hi.next = 0x00
-                yield delay(5)
+                # yield delay(5)
 
                 for addr in range(256):
 
-                    instr_bin = intbv(((codes['LOAD'][0] << 8) | 0x01) | (addr & 0xff))[16:]
+                    instr_bin = intbv(((codes['LOAD'][0] << 8)) | (addr & 0xff))[16:]
                     instr_hi.next = instr_bin[16:8]
 
                     in_dm_addr.next = addr
                     in_imm.next = 0
                     yield clock.posedge
-                    yield delay(1)
+                    yield delay(3)
                     # yield clock.posedge
-                    assert addr == out_acc
+                    assert addr  == out_acc
                     
                             
                 # raise Exception

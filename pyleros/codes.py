@@ -39,8 +39,15 @@ codes['BRN'] = [0x4c, [dec_op_type.br_op], False]
 codes['LOADX'] = [0x60, [dec_op_type.indls, dec_op_type.ah_ena, dec_op_type.al_ena], False]
 codes['STOREX'] = [0x70, [dec_op_type.indls, dec_op_type.store], False]
 
+# USed to read addr from data mem for indirect ls
+codes['LOADADDR'] = [0x50, [], False]
+
 # Jump and link
 codes['JAL'] = [0x40, [dec_op_type.jal, dec_op_type.store], False]
+
+# I/O
+codes['IN'] = [0x3c, [dec_op_type.inp, dec_op_type.ah_ena, dec_op_type.al_ena], False]
+codes['OUT'] = [0x38, [dec_op_type.outp], False]
 
 dlist = [dec_op_type.al_ena, dec_op_type.ah_ena, dec_op_type.log_add, \
         dec_op_type.add_sub, dec_op_type.shr, dec_op_type.sel_imm, dec_op_type.store, \
@@ -51,38 +58,5 @@ dlist = [dec_op_type.al_ena, dec_op_type.ah_ena, dec_op_type.log_add, \
 
 
 def conv_bin(instr=None):
-    if not instr:
-        return
-
-    bin_code = 0x00
-    if instr == 'NOP':
-        bin_code = 0x00
-
-    elif instr == 'ADD':
-        bin_code = 0x08
-
-    elif instr == 'SUB':
-        bin_code = 0x0c
-
-    elif instr == 'SHR':
-        bin_code = 0x10
-
-    elif instr == 'AND':
-        bin_code = 0x22
-
-    elif instr == 'OR':
-        bin_code = 0x24
-
-    elif instr == 'XOR':
-        bin_code = 0x26
-
-    elif instr == 'LOAD':
-        bin_code == 0x20
-
-    elif instr == 'LOADH':
-        bin_code == 0x28
-
-    elif instr == 'STORE':
-        bin_code == 0x30
-
-    return bin_code
+    if instr:
+        return codes[instr][0]

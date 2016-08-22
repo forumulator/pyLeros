@@ -1,12 +1,13 @@
+
 from myhdl import instances, block, intbv, \
-                    always_comb, always_seq
+                    always_comb, always_seq, Signal
 
 from pyleros.types import alu_op_type, dec_op_type
 
 
 
 @block
-def pyleros_alu(alu_op, dec, acc, opd, pre_acc, debug=False):
+def pyleros_alu(alu_op, dec, acc, opd, pre_acc, ioin, debug=False):
     """The alu module for pyleros, purely combinatorial
 
     Arguments (ports):
@@ -20,21 +21,23 @@ def pyleros_alu(alu_op, dec, acc, opd, pre_acc, debug=False):
         None
     """
 
-    res_arith = intbv(0)[16:]
-    res_log = intbv(0)[16:]
+    res_arith = Signal(intbv(0)[16:])
+    res_log = Signal(intbv(0)[16:])
 
     # Add and Subtract module
     @always_comb
     def op_add_sub():
 
-        if debug:
-            print("inside alu", acc, opd)
-        if not dec[int(dec_op_type.add_sub)]:
-            res_arith = (int(acc) + int(opd)) & 0xffff
+        if __debug__:
             if debug:
-                print(res_arith, acc + opd, acc, opd)
+                print("inside alu", acc, opd)
+        if dec.add_sub == 0:
+            res_arith.next = intbv(acc + opd)[16:]
+            if __debug__:
+                if debug:
+                    print(res_arith.next, acc + opd, acc, opd)
         else:
-            res_arith = (int(acc) - int(opd)) & 0xffff
+            res_arith.next = intbv(acc - opd)[16:]
 
     # for the logical operations
     # @always_comb
@@ -42,37 +45,37 @@ def pyleros_alu(alu_op, dec, acc, opd, pre_acc, debug=False):
 
         if alu_op == alu_op_type.LD:
             # LOAD
-            res_log = int(opd)
+            res_log.next = opd
 
         elif alu_op == alu_op_type.AND:
             # AND
-            res_log = int(acc & opd)
+            res_log.next = acc & opd
 
         elif alu_op == alu_op_type.OR:
             # OR
-            res_log = int(acc | opd)
+            res_log.next = acc | opd
 
         elif alu_op == alu_op_type.XOR:
             # XOR
-            res_log = int(acc ^ opd)
+            res_log.next = acc ^ opd
 
     # MUX to select which result goes into the accumulator
     # based on the decoder control signals
-    # @always_comb
-    # def acc_mux():
-        if dec[int(dec_op_type.log_add)]:
+    @always_comb
+    def acc_mux():
+        if dec.log_add == 1:
             # ADD/ SUB
             pre_acc.next = res_arith
 
-        else:
-            if dec[int(dec_op_type.shr)]:
-                # SHR
-                pre_acc.next = intbv(acc >> 1)[16:]
+        elif dec.shr == 1:
+            # SHR
+            pre_acc.next = intbv(acc >> 1)[16:]
 
-            else:
-                # LOGICAL OPERATION
-                if not (alu_op ==  alu_op_type.NOP):
-                    pre_acc.next = intbv(res_log)[16:]
+        elif dec.inp == 1:
+            pre_acc.next = ioin.rd_data
+
+        elif not (alu_op == alu_op_type.NOP):
+            pre_acc.next = res_log
 
 
     return instances()

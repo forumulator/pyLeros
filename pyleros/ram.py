@@ -24,30 +24,33 @@ def pyleros_dm(clk, reset, rd_addr, wr_addr, wr_data, wr_en, rd_data, debug=Fals
         
     """
     DM_SIZE = 2**DM_BITS
-    DM = [Signal(intbv(0)[16:]) for _ in range(DM_SIZE)]
+    DM = [Signal(intbv(7)[16:]) for _ in range(DM_SIZE)]
 
-    # convert list into tupple for automatic conversion
-    DM_array = tuple(DM)
+    @always_seq(clk.posedge, reset=reset)
+    def read_write():
+        # if __debug__:
+        #     if debug:
 
-    @always_seq(clk.negedge, reset=reset)
-    def DM_rw():
-        if debug:
-            print("Reading DM at " +  str(int(rd_addr)) + " " + str(int(DM[int(rd_addr)].val)))
-        rd_data.next = DM[int(rd_addr)].val
+        rd_data.next = DM[int(rd_addr)]
 
         if wr_en:
             # Write enabled
-            if wr_addr >= DM_SIZE:
-                raise ValueError("Write addr " + hex(wr_addr) + "out of bounds")
-            else:   
-                # if wr_addr == 255:
-                #     for i in range(256):
-                #         print("At {addr} : {val}".format(addr=(i), val=int(DM[i].val)))
+
+            if __debug__:
+                if wr_addr >= DM_SIZE:
+                    raise ValueError("Write addr " + hex(wr_addr) + "out of bounds")  
+                
                 if debug:
                     print("Writing to DM at " + str(wr_addr) + " " + str(int(wr_data.val)))
-                DM[int(wr_addr)].next = intbv(wr_data.val)[16:]
+            # if wr_addr == 19:
+            #     print(DM[:20])
+            
+            DM[int(wr_addr)].next = wr_data
+            if (wr_addr == 17):
+                for i in range(20):
+                    print ("At DM address", i, "data", DM[i])
 
-    return instances()
+    return read_write
 
 
 

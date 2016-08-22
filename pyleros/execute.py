@@ -8,7 +8,7 @@ from pyleros import alu, ram
 
 @block
 def pyleros_exec(clk, reset, pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pipe_pc,
-                 back_acc, back_dm_data, fwd_accu, debug=False):
+                 back_acc, back_dm_data, fwd_accu, ioin, debug=False):
     """The execute module for pyleros. The modules is purely 
     combinatorial, except for the updating the pipeline 
     register. The DM is instantied and only accessed
@@ -50,17 +50,17 @@ def pyleros_exec(clk, reset, pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pip
     dm_wr_addr_dly = Signal(intbv(0)[DM_BITS:])
 
     # Instantiate the ALU
-    alu_inst = alu.pyleros_alu(pipe_alu_op, pipe_dec, acc, opd, pre_accu, debug)
+    alu_inst = alu.pyleros_alu(pipe_alu_op, pipe_dec, acc, opd, pre_accu, ioin, debug)
 
     # Instantiate the DM
     dm_inst = ram.pyleros_dm(clk, reset, dm_rd_addr, dm_wr_addr, dm_wr_data, dm_wr_en, dm_rd_data, debug)
 
 
     @always_comb
-    def sync_sig():
+    def back_sig():
 
-        # if not reset:
-        # print(acc)
+        # back_x Signals are used for data forwarding, thus
+        # they aren't set on clock.posedge
         back_dm_data.next = dm_rd_data
         dm_rd_addr.next = pipe_dm_addr
 
@@ -70,7 +70,7 @@ def pyleros_exec(clk, reset, pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pip
 
         # if not reset:
         # Mux for Data Memory read/ Immediate value retrieve
-        if pipe_dec[int(dec_op_type.sel_imm)]:
+        if pipe_dec.sel_imm == True:
             # Immediate
             opd.next = pipe_imme
 
@@ -83,21 +83,21 @@ def pyleros_exec(clk, reset, pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pip
     def mux_write_dm():
   
         # print(acc)
-        if pipe_dec[int(dec_op_type.store)]:
+        if pipe_dec.store == True:
             dm_wr_en.next = True
         else:
             dm_wr_en.next = False
 
-        dm_wr_addr.next = pipe_dm_addr
+        # Used to ensure that address for 
+        # stores don't get affected by the next instruction fetch and
+        # decode
+        dm_wr_addr.next = dm_wr_addr_dly
 
         # MUX for selecting the data to be written
         # in case of jal
-        if pipe_dec[int(dec_op_type.jal)]:
-            temp = intbv(0)[16:]
-            temp[IM_BITS:0] = pc_dly
-            temp[16:IM_BITS] = 0
-
-            dm_wr_data.next = temp
+        if pipe_dec.jal == True:
+            # dm_wr_data.next = intbv(0)[16:]
+            dm_wr_data.next = pipe_pc
 
         else:
             dm_wr_data.next = acc
@@ -115,17 +115,23 @@ def pyleros_exec(clk, reset, pipe_alu_op, pipe_dec, pipe_imme, pipe_dm_addr, pip
 
         # Write the accumulator based on the 
         # high and low enable write control signals
-        if pipe_dec[int(dec_op_type.al_ena)] and pipe_dec[int(dec_op_type.ah_ena)]:
-            if debug:
-                print("Next value of the accumulator " + str(int(pre_accu)))
-            acc.next = pre_accu
+        if pipe_dec.ah_ena == True:
+            acc.next[16:8] = pre_accu[16:8]
+        if pipe_dec.al_ena == True:
+            acc.next[8:0] = pre_accu[8:0]
+            if __debug__:
+                if debug:
+                    print("Next value of the accumulator " + str(int(pre_accu)))
+        dm_wr_addr_dly.next = pipe_dm_addr
 
     @always_comb
     def fwd_acc_set():
 
-        if pipe_dec[int(dec_op_type.al_ena)] and pipe_dec[int(dec_op_type.ah_ena)]:
-            fwd_accu.next = pre_accu
-            back_acc.next = pre_accu
-
+        if pipe_dec.ah_ena == True:
+            back_acc.next[16:8] = pre_accu[16:8]
+            fwd_accu.next[16:8] = pre_accu[16:8]
+        if pipe_dec.al_ena == True:
+            back_acc.next[8:0] = pre_accu[8:0]
+            fwd_accu.next[8:0] = pre_accu[8:0]
        
     return instances()
