@@ -53,6 +53,7 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu, pipe_alu_op,
     branch_en = Signal(bool(0))
     acc_z = True
 
+    nxt_dm_addr = Signal(intbv(0)[DM_BITS:])
     # Since the init of PC causes the first addition
     # automatically, the first Instr is read from
     # 0x01, not 0x00 and thus the instr at 0x00 is never
@@ -78,7 +79,6 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu, pipe_alu_op,
 
         instr_hi.next = instr[16:8]
         im_addr.next = pc_next
-        pipe_pc.next = pc_add  
 
 
     @always_comb
@@ -91,26 +91,13 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu, pipe_alu_op,
             # for indirect load/store
             if debug:
                 print("offset address: " + str(int(offset_addr)))
-            pipe_dm_addr.next = offset_addr[DM_BITS:] 
+            nxt_dm_addr.next = offset_addr[DM_BITS:] 
 
         else:
             # Direct Addressing
             if debug:
                 print("direct address: " + str(int(instr[DM_BITS:])))
-            pipe_dm_addr.next = instr[DM_BITS:]
-
-
-    # Branch To avoid data hazard, that is, calculation of the branch address
-    # before the new value of the accumulator from the prev. op is available, 
-    # we could shift the calculation of the branch address from the fedec to the
-    # execute stage, similar to the MIPs processor. 
-    # This decision potentially introduces a branch hazard
-    # which can be avoided by invaidating the instruction
-    # fetch in case the branch is taken. The data hazard can 
-    # be \avoided(?) by forwarding the result of the calculation
-    # ADD/STORE/LOAD to the fetch stage, before it is written
-    # to the accumulator. This problem does not occur with
-    # MIPs becuase the branching decision is made in 
+            nxt_dm_addr.next = instr[DM_BITS:]
 
     @always_comb
     def branch_sel():
@@ -194,14 +181,14 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu, pipe_alu_op,
         # Add 1 or branch offset OR set the add
         # to the jump addr
         if decode[int(dec_op_type.jal)]: 
-            pc_next.next = back_acc[IM_BITS:]
+            pc_next.next = fwd_accu[IM_BITS:]
 
         else:
             pc_next.next = pc_add
         if debug:
             print_func('end')
     
-    @always_comb
+    @always_seq(clk.posedge, reset)
     def intr_pipe():
 
         # if decode[int(dec_op_type.add_sub)] == True:
@@ -211,15 +198,22 @@ def pyleros_fedec(clk, reset, back_acc, back_dm_data, fwd_accu, pipe_alu_op,
         else:
             pipe_imme.next = instr[8:]
 
+        pipe_pc.next = pc_next 
+
+        for sig in dlist:
+            pipe_dec[int(sig)].next = decode[int(sig)]
+
+        pipe_alu_op.next = alu_op
+
+        pipe_dm_addr.next = nxt_dm_addr
+        pipe_alu_op.next = alu_op.next
+
         # else:
         #   immr(7 downto 0) <= imout.data(7 downto 0);
         #   immr(15 downto 0) <= (others => '0');       
         # Set the control signals for the
         # pipeline register
-        for sig in dlist:
-            pipe_dec[int(sig)].next = decode[int(sig)]
-
-        pipe_alu_op.next = alu_op
+        
 
     @always_seq(clk.posedge, reset=reset)
     def other_pipe():

@@ -104,7 +104,8 @@ def test_fedec_imm():
             # only the instuction is updated, and the 
             # decoder, the output from fedec doesn't change 
             # till after the second cycle.
-            yield delay(12)
+            yield clock.posedge
+            yield delay(1)
 
             ninstr = len(instr_list)
             for addr in range(1,ninstr):
@@ -119,7 +120,7 @@ def test_fedec_imm():
 
                 yield clock.posedge
                 yield delay(1)
-                yield delay(1)
+                
 
                 for sig in dlist:
                     print(str(sig))
