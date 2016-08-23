@@ -40,7 +40,7 @@ Getting started
 Checkout the above repo using
 
 ```
->> git clone https://github.com/jandecaluwe/myhdl
+>> git clone https://github.com/forumulator/pyLeros.git
 
 ```
 The dependencies listed above need to be installed. It can be done
